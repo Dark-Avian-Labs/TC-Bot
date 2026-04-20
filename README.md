@@ -1,6 +1,6 @@
 # Discord Bot for Ark of War
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg?style=for-the-badge)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 ![Static Badge](https://img.shields.io/badge/Node.js-25-red?style=for-the-badge)
 ![Static Badge](https://img.shields.io/badge/TypeScript-5.9-blue?style=for-the-badge)
 ![NPM Version](https://img.shields.io/npm/v/discord.js?style=for-the-badge&label=Discord.js&color=blue)
@@ -145,6 +145,6 @@ Unless you have a copy of the Theorycrafters Google Sheet and valid API credenti
 
 ## License
 
-The TC-Bot project is licensed under [GPLv3](https://www.gnu.org/licenses/gpl-3.0.html).
+The TC-Bot project is licensed under the [MIT License](LICENSE).
 
 Discord.js framework by [Discord.js](https://github.com/discordjs/discord.js).
