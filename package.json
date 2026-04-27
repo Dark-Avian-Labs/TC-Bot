@@ -29,7 +29,7 @@
     "typecheck": "tsc -p tsconfig.test.json --noEmit && tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@dotenvx/dotenvx": "^1.61.1",
+    "@dotenvx/dotenvx": "^1.63.0",
     "@googleapis/sheets": "^13.0.1",
     "@pm2/io": "^6.1.0",
     "better-sqlite3": "^12.9.0",
@@ -39,17 +39,17 @@
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^25.6.0",
-    "oxfmt": "^0.45.0",
-    "oxlint": "^1.60.0",
+    "oxfmt": "^0.46.0",
+    "oxlint": "^1.61.0",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.4"
+    "vitest": "^4.1.5"
   },
   "engines": {
     "node": ">=25.0.0",
-    "pnpm": ">=11.0.0-rc.0"
+    "pnpm": ">=11.0.0-rc.5"
   },
-  "packageManager": "pnpm@11.0.0-rc.0",
+  "packageManager": "pnpm@11.0.0-rc.5",
   "pnpm": {
     "onlyBuiltDependencies": [
       "better-sqlite3",
