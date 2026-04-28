@@ -117,7 +117,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install
 
       - name: Check formatting
         run: pnpm run check-format
@@ -157,7 +157,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install
 
       - name: Build native modules
         run: pnpm rebuild better-sqlite3 esbuild
