@@ -21,6 +21,10 @@ describe('formatTime', () => {
     expect(formatTime(8 * 3600000)).toBe('08:00:00');
     expect(formatTime(16 * 3600000)).toBe('16:00:00');
   });
+
+  it('wraps durations above 24h like Date.toISOString does', () => {
+    expect(formatTime(25 * 3600000)).toBe('01:00:00');
+  });
 });
 
 describe('getMopupWindow', () => {
@@ -74,6 +78,14 @@ describe('determineMopupStatus', () => {
     expect(result.color).toBe(Colors.Red);
     const nextStartDelta = -3600000 + 24 * 60 * 60 * 1000;
     expect(result.timestamp).toBe(Math.floor((currentTime + nextStartDelta) / 1000));
+  });
+
+  it('treats exact start and exact end as inactive boundaries', () => {
+    const atStart = determineMopupStatus(0, 3600000, currentTime);
+    expect(atStart.status).toBe('INACTIVE');
+
+    const atEnd = determineMopupStatus(-3600000, 0, currentTime);
+    expect(atEnd.status).toBe('INACTIVE');
   });
 });
 
