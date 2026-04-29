@@ -13,6 +13,7 @@ describe('calculateGearStats', () => {
 
   it('keeps expected breakpoints and multipliers', () => {
     const result = calculateGearStats(100, 0);
+    expect(result[0]).toBe('100.00');
     expect(Object.keys(result).map(Number)).toEqual([0, 10, 13, 20, 30, 40, 50]);
     expect(result[13]).toBe('230.00');
     expect(result[30]).toBe('400.00');

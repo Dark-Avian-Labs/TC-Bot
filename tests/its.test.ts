@@ -78,7 +78,7 @@ describe('calculateKills', () => {
   it('returns empty when coefficient does not produce at least 1 kill', () => {
     const kills = calculateKills(mockRows, 12, 1, 1, 0);
 
-    expect(kills.length).toBe(0);
+    expect(kills).toEqual([]);
   });
 
   it('abbreviates troop types correctly', () => {
@@ -120,6 +120,6 @@ describe('calculateKills', () => {
   it('produces no kills when called with 100% TDR', () => {
     const kills = calculateKills(mockRows, 12, 30, 500000, 100);
 
-    expect(kills.length).toBe(0);
+    expect(kills).toEqual([]);
   });
 });

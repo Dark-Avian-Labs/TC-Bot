@@ -97,7 +97,7 @@ describe('calculateHealingCosts', () => {
     expect(costs?.special['smCost']).toEqual({ current: 13, optimal: 25 });
   });
 
-  it('computes other stats using integer parsing and ceil', () => {
+  it('computes other stats: parseInt on cell values (truncates decimals), then ceil on v × troopAmount', () => {
     const row = createMockRow({
       troopUnits: '100',
       foodCost: '1',
