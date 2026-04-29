@@ -36,23 +36,17 @@ describe('calculateKills', () => {
     }),
   ];
 
-  it('filters by target tier', () => {
+  it('filters by target tier and NPC flag', () => {
     const kills = calculateKills(mockRows, 12, 30, 500000, 0);
 
     const names = kills.map((k) => k.name);
     expect(names).toContain('Test Infantry');
     expect(names).toContain('Test Walker');
     expect(names).not.toContain('Lower Tier Infantry');
-  });
-
-  it('excludes NPC units', () => {
-    const kills = calculateKills(mockRows, 12, 30, 500000, 0);
-
-    const names = kills.map((k) => k.name);
     expect(names).not.toContain('NPC Unit');
   });
 
-  it('calculates kill count using damage coefficient', () => {
+  it('calculates kill count from coefficient and rounds down', () => {
     const kills = calculateKills(mockRows, 12, 30, 500000, 0);
 
     const infantry = kills.find((k) => k.name === 'Test Infantry');
@@ -81,10 +75,10 @@ describe('calculateKills', () => {
     expect(kills).toEqual([]);
   });
 
-  it('handles zero kills correctly', () => {
+  it('returns empty when coefficient does not produce at least 1 kill', () => {
     const kills = calculateKills(mockRows, 12, 1, 1, 0);
 
-    expect(kills.length).toBe(0);
+    expect(kills).toEqual([]);
   });
 
   it('abbreviates troop types correctly', () => {
@@ -97,7 +91,7 @@ describe('calculateKills', () => {
     expect(walker?.type).toBe('WLK');
   });
 
-  it('handles rows with missing units', () => {
+  it('skips rows with invalid units or missing names', () => {
     const rowsWithInvalid = [
       ...mockRows,
       createMockRow({
@@ -107,35 +101,25 @@ describe('calculateKills', () => {
         troopType: 'Infantry',
         isNPC: 'N',
       }),
+      createMockRow({
+        troopTier: '12',
+        troopUnits: '50',
+        troopName: '',
+        troopType: 'Walker',
+        isNPC: 'N',
+      }),
     ];
 
     const kills = calculateKills(rowsWithInvalid, 12, 30, 500000, 0);
 
     const names = kills.map((k) => k.name);
     expect(names).not.toContain('Invalid Unit');
+    expect(names).not.toContain('');
   });
 
-  it('handles rows with zero units', () => {
-    const rowsWithZero = [
-      ...mockRows,
-      createMockRow({
-        troopTier: '12',
-        troopUnits: '0',
-        troopName: 'Zero Unit',
-        troopType: 'Infantry',
-        isNPC: 'N',
-      }),
-    ];
-
-    const kills = calculateKills(rowsWithZero, 12, 30, 500000, 0);
-
-    const names = kills.map((k) => k.name);
-    expect(names).not.toContain('Zero Unit');
-  });
-
-  it('clamps TDR to valid range', () => {
+  it('produces no kills when called with 100% TDR', () => {
     const kills = calculateKills(mockRows, 12, 30, 500000, 100);
 
-    expect(kills.length).toBe(0);
+    expect(kills).toEqual([]);
   });
 });

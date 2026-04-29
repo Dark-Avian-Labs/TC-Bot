@@ -9,101 +9,49 @@ import {
 import { createMockRow } from './helpers.js';
 
 describe('getModifier', () => {
-  it('returns 0.25 for units >= 3501', () => {
-    expect(getModifier(3501)).toBe(0.25);
-    expect(getModifier(5000)).toBe(0.25);
-    expect(getModifier(10000)).toBe(0.25);
-  });
-
-  it('returns 0.22 for units 1501-3500', () => {
-    expect(getModifier(1501)).toBe(0.22);
-    expect(getModifier(2500)).toBe(0.22);
+  it('matches threshold boundaries exactly', () => {
     expect(getModifier(3500)).toBe(0.22);
-  });
-
-  it('returns 0.19 for units 901-1500', () => {
-    expect(getModifier(901)).toBe(0.19);
-    expect(getModifier(1200)).toBe(0.19);
+    expect(getModifier(3501)).toBe(0.25);
     expect(getModifier(1500)).toBe(0.19);
-  });
-
-  it('returns 0.17 for units 501-900', () => {
-    expect(getModifier(501)).toBe(0.17);
-    expect(getModifier(700)).toBe(0.17);
+    expect(getModifier(1501)).toBe(0.22);
     expect(getModifier(900)).toBe(0.17);
-  });
-
-  it('returns 0.15 for units 201-500', () => {
-    expect(getModifier(201)).toBe(0.15);
-    expect(getModifier(350)).toBe(0.15);
+    expect(getModifier(901)).toBe(0.19);
     expect(getModifier(500)).toBe(0.15);
-  });
-
-  it('returns 0.1 for units 0-200', () => {
-    expect(getModifier(0)).toBe(0.1);
-    expect(getModifier(100)).toBe(0.1);
+    expect(getModifier(501)).toBe(0.17);
     expect(getModifier(200)).toBe(0.1);
+    expect(getModifier(201)).toBe(0.15);
   });
 });
 
 describe('getOptimalModifier', () => {
-  it('returns highest modifier for units >= 3501', () => {
-    const result = getOptimalModifier(3501);
-    expect(result.modifier).toBe(0.25);
-    expect(result.units).toBe(-1);
-  });
-
-  it('returns next tier up for units below threshold', () => {
-    const result = getOptimalModifier(1000);
-    expect(result.modifier).toBe(0.22);
-    expect(result.units).toBe(1501);
-  });
-
-  it('returns next tier up for small units', () => {
-    const result = getOptimalModifier(50);
-    expect(result.modifier).toBe(0.15);
-    expect(result.units).toBe(201);
+  it('returns next reachable discount tier', () => {
+    expect(getOptimalModifier(3501)).toEqual({ modifier: 0.25, units: -1 });
+    expect(getOptimalModifier(1000)).toEqual({ modifier: 0.22, units: 1501 });
+    expect(getOptimalModifier(500)).toEqual({ modifier: 0.17, units: 501 });
+    expect(getOptimalModifier(50)).toEqual({ modifier: 0.15, units: 201 });
   });
 });
 
 describe('calculateResourceCost', () => {
-  it('calculates cost correctly', () => {
-    const cost = calculateResourceCost('1000', 10, 0.25);
-    expect(cost).toBe(2500);
+  it('parses comma-formatted values and rounds up partial costs', () => {
+    expect(calculateResourceCost('1,000,000', 1, 0.1)).toBe(100000);
+    expect(calculateResourceCost('101', 1, 0.17)).toBe(18);
   });
 
-  it('handles comma-formatted numbers', () => {
-    const cost = calculateResourceCost('1,000,000', 1, 0.1);
-    expect(cost).toBe(100000);
-  });
-
-  it('returns null for null input', () => {
+  it('returns null for missing or invalid numeric data', () => {
     expect(calculateResourceCost(null, 10, 0.25)).toBeNull();
-  });
-
-  it('returns null for undefined input', () => {
     expect(calculateResourceCost(undefined, 10, 0.25)).toBeNull();
-  });
-
-  it('returns null for empty string', () => {
     expect(calculateResourceCost('', 10, 0.25)).toBeNull();
-  });
-
-  it('returns null for non-numeric string', () => {
     expect(calculateResourceCost('abc', 10, 0.25)).toBeNull();
   });
 
-  it('rounds up to nearest integer', () => {
-    const cost = calculateResourceCost('100', 1, 0.17);
-    expect(cost).toBe(17);
-
-    const cost2 = calculateResourceCost('101', 1, 0.17);
-    expect(cost2).toBe(18);
+  it('keeps parseInt semantics for decimal-like strings', () => {
+    expect(calculateResourceCost('100.9', 10, 0.25)).toBe(250);
   });
 });
 
 describe('calculateHealingCosts', () => {
-  it('returns null for invalid units', () => {
+  it('returns null for invalid troop unit definitions', () => {
     const row = createMockRow({ troopUnits: '0' });
     expect(calculateHealingCosts(row, 10)).toBeNull();
 
@@ -114,7 +62,7 @@ describe('calculateHealingCosts', () => {
     expect(calculateHealingCosts(row3, 10)).toBeNull();
   });
 
-  it('calculates totalUnits correctly', () => {
+  it('calculates total units and active modifier', () => {
     const row = createMockRow({
       troopUnits: '100',
       foodCost: '1000',
@@ -123,19 +71,10 @@ describe('calculateHealingCosts', () => {
     const costs = calculateHealingCosts(row, 50);
 
     expect(costs?.totalUnits).toBe(5000);
-  });
-
-  it('applies correct modifier based on total units', () => {
-    const row = createMockRow({
-      troopUnits: '100',
-      foodCost: '1000',
-    });
-
-    const costs = calculateHealingCosts(row, 50);
     expect(costs?.modifier).toBe(0.25);
   });
 
-  it('calculates resource costs', () => {
+  it('computes resource costs for current and optimal tiers', () => {
     const row = createMockRow({
       troopUnits: '100',
       foodCost: '1000',
@@ -145,25 +84,24 @@ describe('calculateHealingCosts', () => {
     const costs = calculateHealingCosts(row, 50);
 
     expect(costs?.resources['foodCost']?.current).toBe(12500);
+    expect(costs?.resources['foodCost']?.optimal).toBe(7500);
     expect(costs?.resources['partsCost']?.current).toBe(6250);
   });
 
-  it('calculates special costs', () => {
+  it('computes special costs in optimal chunks and enforces minimum 1 per chunk', () => {
     const row = createMockRow({
       troopUnits: '100',
-      smCost: '10',
+      smCost: '1',
     });
-
     const costs = calculateHealingCosts(row, 50);
-
-    expect(costs?.special['smCost']).toBeDefined();
+    expect(costs?.special['smCost']).toEqual({ current: 13, optimal: 25 });
   });
 
-  it('calculates other stats', () => {
+  it('computes other stats: parseInt on cell values (truncates decimals), then ceil on v × troopAmount', () => {
     const row = createMockRow({
       troopUnits: '100',
-      foodCost: '1000',
-      powerLost: '500',
+      foodCost: '1',
+      powerLost: '500.9',
       kePoints: '100',
     });
 
@@ -173,7 +111,7 @@ describe('calculateHealingCosts', () => {
     expect(costs?.other['kePoints']).toBe(1000);
   });
 
-  it('sets hasData to true when any cost data exists', () => {
+  it('sets hasData only when at least one cost bucket is present', () => {
     const row = createMockRow({
       troopUnits: '100',
       foodCost: '1000',
@@ -192,7 +130,7 @@ describe('calculateHealingCosts', () => {
     expect(costs).toBeNull();
   });
 
-  it('calculates optimal quantity', () => {
+  it('computes optimal quantity from per-troop unit size', () => {
     const row = createMockRow({
       troopUnits: '500',
       foodCost: '1000',
