@@ -20,6 +20,7 @@ on:
       - 'run-quality-checks.mjs'
       - '.env.production'
       - '.github/workflows/ci.yml'
+      - '.releaserc.json'
   workflow_dispatch:
 
 concurrency:
@@ -28,6 +29,7 @@ concurrency:
 
 jobs:
   deployment-check:
+    if: ${{ !contains(github.event.head_commit.message, 'chore(release)') && !contains(github.event.head_commit.message, 'build(release)') }}
     runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 10
 
@@ -93,19 +95,64 @@ jobs:
           echo "deploy=false" >> "$GITHUB_OUTPUT"
           echo "Reason: Only devDependencies or lockfile changed"
 
+  version:
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    timeout-minutes: 10
+
+    needs: [deployment-check]
+    if: ${{ needs.deployment-check.outputs.deploy == 'true' && !contains(github.event.head_commit.message, 'chore(release)') && !contains(github.event.head_commit.message, 'build(release)') }}
+
+    permissions:
+      contents: write
+    outputs:
+      target_sha: ${{ steps.target.outputs.sha }}
+
+    steps:
+      - name: Checkout full history
+        uses: useblacksmith/checkout@v1
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.CI_PAT }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Bump version
+        run: pnpm exec semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.CI_PAT }}
+
+      - name: Resolve deployment target SHA
+        id: target
+        shell: bash
+        run: |
+          git fetch origin main
+          echo "sha=$(git rev-parse origin/main)" >> "$GITHUB_OUTPUT"
+
   validate:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 10
 
-    needs: deployment-check
+    needs: [deployment-check, version]
     if: needs.deployment-check.outputs.deploy == 'true'
 
     env:
       DOTENV_PRIVATE_KEY_PRODUCTION: ${{ secrets.DOTENV_PRIVATE_KEY_PRODUCTION }}
 
     steps:
-      - name: Checkout Commit
+      - name: Checkout release target
         uses: useblacksmith/checkout@v1
+        with:
+          ref: ${{ needs.version.outputs.target_sha }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
@@ -140,12 +187,14 @@ jobs:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 10
 
-    needs: [deployment-check, validate]
+    needs: [deployment-check, version, validate]
     if: needs.deployment-check.outputs.deploy == 'true'
 
     steps:
-      - name: Checkout Commit
+      - name: Checkout release target
         uses: useblacksmith/checkout@v1
+        with:
+          ref: ${{ needs.version.outputs.target_sha }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
@@ -315,7 +364,7 @@ jobs:
   discord-status:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 10
-    needs: [deployment-check, validate, build-and-deploy]
+    needs: [deployment-check, validate, build-and-deploy, version]
     if: ${{ always() && github.ref == 'refs/heads/main' }}
 
     steps:
