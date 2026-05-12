@@ -101,7 +101,7 @@ function getSince(period: string): PeriodInfo {
   const now = new Date();
   const since = new Date(now.getTime());
 
-  let label = 'Daily (last 24h)';
+  let label: string;
   switch (period) {
     case 'weekly':
       since.setUTCDate(since.getUTCDate() - 7);
