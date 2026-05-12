@@ -17,6 +17,32 @@ interface PeriodInfo {
   label: string;
 }
 
+const METRICS_PERIODS = ['daily', 'weekly', 'monthly', 'yearly'] as const;
+type MetricsPeriod = (typeof METRICS_PERIODS)[number];
+
+function isMetricsPeriod(value: string): value is MetricsPeriod {
+  return (METRICS_PERIODS as readonly string[]).includes(value);
+}
+
+function resolveMetricsPeriod(raw: string | null): MetricsPeriod | null {
+  if (raw == null || raw === '') return 'daily';
+  return isMetricsPeriod(raw) ? raw : null;
+}
+
+function daysInUTCMonth(year: number, monthIndex: number): number {
+  return new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate();
+}
+
+function subtractOneUTCMonth(date: Date): void {
+  const y = date.getUTCFullYear();
+  const m = date.getUTCMonth();
+  const d = date.getUTCDate();
+  const prevMonth = m === 0 ? 11 : m - 1;
+  const prevYear = m === 0 ? y - 1 : y;
+  const dim = daysInUTCMonth(prevYear, prevMonth);
+  date.setUTCFullYear(prevYear, prevMonth, Math.min(d, dim));
+}
+
 const metrics: Command = {
   data: new SlashCommandBuilder()
     .setName('metrics')
@@ -39,7 +65,14 @@ const metrics: Command = {
     const startHr = process.hrtime.bigint();
     await interaction.deferReply();
 
-    const period = interaction.options.getString('period') || 'daily';
+    const period = resolveMetricsPeriod(interaction.options.getString('period'));
+    if (period == null) {
+      await interaction.editReply(
+        'Invalid timeframe. Use Daily, Weekly, Monthly, or Yearly. If this keeps happening, contact a server administrator.',
+      );
+      return;
+    }
+
     const { sinceUTC, label } = getSince(period);
 
     try {
@@ -92,12 +125,14 @@ const metrics: Command = {
       await interaction.editReply({ embeds: [embed] });
     } catch (err) {
       console.error('[METRICS] Failed to query metrics:', err);
-      await interaction.editReply('Metrics are currently unavailable.');
+      await interaction.editReply(
+        'Metrics are temporarily unavailable. Please try again later. If the problem persists, contact a server administrator.',
+      );
     }
   },
 };
 
-function getSince(period: string): PeriodInfo {
+function getSince(period: MetricsPeriod): PeriodInfo {
   const now = new Date();
   const since = new Date(now.getTime());
 
@@ -108,7 +143,7 @@ function getSince(period: string): PeriodInfo {
       label = 'Weekly (last 7 days)';
       break;
     case 'monthly':
-      since.setUTCMonth(since.getUTCMonth() - 1);
+      subtractOneUTCMonth(since);
       label = 'Monthly (last month)';
       break;
     case 'yearly':
@@ -116,9 +151,9 @@ function getSince(period: string): PeriodInfo {
       label = 'Yearly (last year)';
       break;
     case 'daily':
-    default:
       since.setUTCDate(since.getUTCDate() - 1);
       label = 'Daily (last 24h)';
+      break;
   }
 
   const sinceUTC = formatUTC(since);
