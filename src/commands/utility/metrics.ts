@@ -25,7 +25,7 @@ function isMetricsPeriod(value: string): value is MetricsPeriod {
 }
 
 function resolveMetricsPeriod(raw: string | null): MetricsPeriod | null {
-  if (raw == null || raw === '') return 'daily';
+  if (raw === null) return 'daily';
   return isMetricsPeriod(raw) ? raw : null;
 }
 
@@ -66,7 +66,7 @@ const metrics: Command = {
     await interaction.deferReply();
 
     const period = resolveMetricsPeriod(interaction.options.getString('period'));
-    if (period == null) {
+    if (period === null) {
       await interaction.editReply(
         'Invalid timeframe. Use Daily, Weekly, Monthly, or Yearly. If this keeps happening, contact a server administrator.',
       );
