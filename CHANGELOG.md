@@ -6,8 +6,6 @@ Notable work on `main` is summarized **by merged pull request**, one line each, 
 
 Each line uses the **`package.json` version at merge time** (tags and `build(release)` commits on `main`). Commit types (`feat`, `fix`, `chore`, etc.) reflect the nature of the change, not how the version was bumped historically.
 
-Current `package.json` on `main` is **7.8.3** (semantic-release after PRs [#97](https://github.com/Dark-Avian-Labs/tc-bot/pull/97)–[#98](https://github.com/Dark-Avian-Labs/tc-bot/pull/98)).
-
 ## Early `main` (before PR #1)
 
 - `chore`: Ark of War theorycrafter bot lineage (PHP-era stats and Discord bot evolution) before tracked PR merges
