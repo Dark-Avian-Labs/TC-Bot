@@ -25,7 +25,7 @@ function isMetricsPeriod(value: string): value is MetricsPeriod {
 }
 
 function resolveMetricsPeriod(raw: string | null): MetricsPeriod | null {
-  if (raw == null || raw === '') return 'daily';
+  if (raw === null || raw === undefined || raw === '') return 'daily';
   return isMetricsPeriod(raw) ? raw : null;
 }
 
