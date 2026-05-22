@@ -5,7 +5,10 @@
       "@semantic-release/commit-analyzer",
       {
         "preset": "angular",
-        "releaseRules": [{ "type": "chore", "release": "patch" }]
+        "releaseRules": [
+          { "type": "chore", "release": "patch" },
+          { "type": "ci", "release": "patch" }
+        ]
       }
     ],
     "@semantic-release/release-notes-generator",
@@ -16,10 +19,16 @@
       }
     ],
     [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "node scripts/append-changelog.mjs \"${nextRelease.version}\""
+      }
+    ],
+    [
       "@semantic-release/git",
       {
         "message": "build(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}",
-        "assets": ["package.json", "pnpm-lock.yaml"]
+        "assets": ["package.json", "pnpm-lock.yaml", "CHANGELOG.md"]
       }
     ]
   ]
