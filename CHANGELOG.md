@@ -101,3 +101,4 @@ Historical entries through the current release were **backfilled from merged PR 
 - **v7.8.1** `chore(deps)` [#96](https://github.com/Dark-Avian-Labs/tc-bot/pull/96): update oxfmt, oxlint, and vitest to latest versions
 - **v7.8.2** `chore(deps-dev)` [#98](https://github.com/Dark-Avian-Labs/tc-bot/pull/98): bump @types/node from 25.6.2 to 25.7.0 in the development-dependencies group
 - **v7.8.3** `chore(deps)` [#97](https://github.com/Dark-Avian-Labs/tc-bot/pull/97): bump better-sqlite3 from 12.9.0 to 12.10.0 in the production-dependencies group across 1 directory
+- **v7.8.5** `chore`: Merge pull request #101 from Dark-Avian-Labs:chore--update-CI-workflow-to-generate-changelog-automatically
