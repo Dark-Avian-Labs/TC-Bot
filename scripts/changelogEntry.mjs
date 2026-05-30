@@ -55,8 +55,9 @@ export function parseMergeCommitMessage(message) {
 
   const conventionalMatch = withoutPr.match(/^(\w+)(?:\(([^)]+)\))?(!)?:\s*(.+)$/);
   if (conventionalMatch) {
-    const [, type, scope] = conventionalMatch;
-    const typeLabel = scope ? `${type.toLowerCase()}(${scope})` : type.toLowerCase();
+    const [, type, scope, breaking] = conventionalMatch;
+    const baseTypeLabel = scope ? `${type.toLowerCase()}(${scope})` : type.toLowerCase();
+    const typeLabel = breaking ? `${baseTypeLabel}!` : baseTypeLabel;
     return {
       typeLabel,
       description: normalizeDescription(conventionalMatch[4]),
