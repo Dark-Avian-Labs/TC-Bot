@@ -1,6 +1,5 @@
 export function normalizeDescription(description) {
-  // Intentionally accept common misspelling "no-reivew" in addition to "no-review".
-  return description.replace(/\s*(?:-\s*)?(?:no-review|no-reivew|NCRR)\s*$/gi, '').trim();
+  return description.replace(/\s*(?:-\s*)?(?:no-review|NCRR)\s*$/gi, '').trim();
 }
 
 export function humanizeBranchDescription(text) {
