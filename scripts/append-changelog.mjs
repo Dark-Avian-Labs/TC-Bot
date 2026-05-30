@@ -27,7 +27,6 @@ if (!version) {
 
 const mergeMessage = process.env.MERGE_COMMIT_MESSAGE ?? '';
 const repository = process.env.GITHUB_REPOSITORY ?? '';
-const repoName = parseRepoName(repository);
 
 const parsed = parseMergeCommitMessage(mergeMessage);
 const line = formatChangelogLine({
@@ -62,4 +61,4 @@ try {
   process.exit(1);
 }
 
-console.log(`Appended changelog entry for ${repoName ?? 'repo'} v${version}.`);
+console.log(`Appended changelog entry for ${parseRepoName(repository) ?? 'repo'} v${version}.`);
