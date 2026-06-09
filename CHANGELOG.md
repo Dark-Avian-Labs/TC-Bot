@@ -104,3 +104,4 @@ Historical entries through the current release were **backfilled from merged PR 
 - **v7.8.5** `chore` [#101](https://github.com/Dark-Avian-Labs/tc-bot/pull/101): update CI workflow to generate changelog automatically
 - **v7.8.6** `chore` [#103](https://github.com/Dark-Avian-Labs/TC-Bot/pull/103): dependabot/npm_and_yarn/production dependencies c9f3fe1535
 - **v7.8.7** `chore` [#106](https://github.com/Dark-Avian-Labs/TC-Bot/pull/106): update dependencies
+- **v7.8.8** `chore` [#109](https://github.com/Dark-Avian-Labs/TC-Bot/pull/109): dependabot/npm_and_yarn/production dependencies 199220a36d
