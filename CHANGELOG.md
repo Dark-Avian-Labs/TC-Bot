@@ -105,3 +105,4 @@ Historical entries through the current release were **backfilled from merged PR 
 - **v7.8.6** `chore` [#103](https://github.com/Dark-Avian-Labs/TC-Bot/pull/103): dependabot/npm_and_yarn/production dependencies c9f3fe1535
 - **v7.8.7** `chore` [#106](https://github.com/Dark-Avian-Labs/TC-Bot/pull/106): update dependencies
 - **v7.8.8** `chore` [#109](https://github.com/Dark-Avian-Labs/TC-Bot/pull/109): dependabot/npm_and_yarn/production dependencies 199220a36d
+- **v7.8.9** `fix` [#111](https://github.com/Dark-Avian-Labs/TC-Bot/pull/111): spreadsheet caching
