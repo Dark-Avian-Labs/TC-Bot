@@ -23,7 +23,7 @@ import { ENABLE_LEGACY_MESSAGE_COMMANDS, TIMERS } from './helper/constants.js';
 import { debugLogger } from './helper/debugLogger.js';
 import { stopIdempotencyCleanup } from './helper/idempotencyGuard.js';
 import { calculateMopupTiming } from './helper/mopup.js';
-import { getSheetRowsCached } from './helper/sheetsCache.js';
+import { getSheetRowsCached, registerSheetTitle } from './helper/sheetsCache.js';
 import * as usageTracker from './helper/usageTracker.js';
 import type { Command, ExtendedClient, GoogleSheetsClient } from './types/index.js';
 
@@ -241,11 +241,28 @@ async function initializeGoogleSheets(): Promise<void> {
   });
 
   const title = response.data.properties?.title || 'Unknown';
+  const sheetId = process.env.GOOGLE_SHEET_ID?.trim();
+
+  if (sheetId) {
+    const targetSheet = (response.data.sheets || []).find(
+      (s) => String(s.properties?.sheetId) === sheetId,
+    );
+    if (targetSheet?.properties?.title) {
+      registerSheetTitle(client.GoogleSheets, sheetId, targetSheet.properties.title);
+    } else {
+      debugLogger.warn('GOOGLE_SHEETS', 'Configured sheet ID not found in spreadsheet', {
+        configuredSheetId: sheetId,
+        availableSheetIds: (response.data.sheets || []).map((s) => s.properties?.sheetId),
+      });
+    }
+  }
 
   debugLogger.step('GOOGLE_SHEETS', 'Prefetching sheet rows to warm cache', {
-    sheetId: process.env.GOOGLE_SHEET_ID,
+    sheetId,
   });
-  await getSheetRowsCached(client.GoogleSheets, process.env.GOOGLE_SHEET_ID!);
+  if (sheetId) {
+    await getSheetRowsCached(client.GoogleSheets, sheetId);
+  }
   console.log('[BOOT] Prefetched Google Sheet rows to warm cache.');
   console.log('[BOOT] Loaded Google Sheet:', title);
 
