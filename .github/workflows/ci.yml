@@ -123,8 +123,8 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
-      - name: Install dependencies
-        run: pnpm install
+      - name: Install dependencies (fresh lockfile)
+        uses: ./.github/actions/pnpm-install-fresh
 
       - name: Bump version
         run: pnpm exec semantic-release
@@ -165,8 +165,8 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
 
-      - name: Install dependencies
-        run: pnpm install
+      - name: Install dependencies (fresh lockfile)
+        uses: ./.github/actions/pnpm-install-fresh
 
       - name: Check formatting
         run: pnpm run check-format
@@ -207,8 +207,8 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
 
-      - name: Install dependencies
-        run: pnpm install
+      - name: Install dependencies (fresh lockfile)
+        uses: ./.github/actions/pnpm-install-fresh
 
       - name: Build native modules
         run: pnpm rebuild better-sqlite3 esbuild
