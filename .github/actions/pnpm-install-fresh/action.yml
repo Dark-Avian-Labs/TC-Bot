@@ -1,0 +1,16 @@
+name: 'PNPM install (fresh lockfile)'
+description: >
+  Removes the committed pnpm-lock.yaml so the next install resolves from package.json
+  and writes a new lockfile. Use after checkout and pnpm/Node setup (with cache keyed on
+  the committed lockfile is fine).
+
+runs:
+  using: composite
+  steps:
+    - name: Drop committed lockfile
+      shell: bash
+      run: rm -f pnpm-lock.yaml
+
+    - name: Install dependencies
+      shell: bash
+      run: pnpm install
