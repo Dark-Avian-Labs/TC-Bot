@@ -108,3 +108,4 @@ Historical entries through the current release were **backfilled from merged PR 
 - **v7.8.9** `fix` [#111](https://github.com/Dark-Avian-Labs/TC-Bot/pull/111): spreadsheet caching
 - **v7.8.10** `chore` [#112](https://github.com/Dark-Avian-Labs/TC-Bot/pull/112): update dependencies
 - **v7.8.11** `chore` [#114](https://github.com/Dark-Avian-Labs/TC-Bot/pull/114): update dependencies
+- **v7.8.12** `fix` [#115](https://github.com/Dark-Avian-Labs/TC-Bot/pull/115): security
