@@ -7,4 +7,4 @@ overrides:
   gaxios: ^7.1.4
   minimatch@>=9: ^10.2.4
   undici: ^7.24.5
-  vite: ^8.0.6
+  vite: ^8.0.16
