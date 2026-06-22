@@ -43,7 +43,7 @@
     "@semantic-release/npm": "^13.1.5",
     "@semantic-release/release-notes-generator": "^14.1.1",
     "@types/better-sqlite3": "^7.6.13",
-    "@types/node": "^25.9.3",
+    "@types/node": "^26.0.0",
     "oxfmt": "^0.55.0",
     "oxlint": "^1.70.0",
     "semantic-release": "^25.0.5",
