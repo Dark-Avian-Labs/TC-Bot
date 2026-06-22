@@ -29,10 +29,10 @@
     "typecheck": "tsc -p tsconfig.test.json --noEmit && tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@dotenvx/dotenvx": "^1.71.3",
+    "@dotenvx/dotenvx": "^1.75.1",
     "@googleapis/sheets": "^13.0.2",
     "@pm2/io": "^6.1.0",
-    "better-sqlite3": "^12.10.1",
+    "better-sqlite3": "^12.11.1",
     "discord.js": "^14.26.4",
     "google-auth-library": "^10.7.0"
   },
