@@ -110,3 +110,4 @@ Historical entries through the current release were **backfilled from merged PR 
 - **v7.8.11** `chore` [#114](https://github.com/Dark-Avian-Labs/TC-Bot/pull/114): update dependencies
 - **v7.8.12** `fix` [#115](https://github.com/Dark-Avian-Labs/TC-Bot/pull/115): security
 - **v7.8.13** `chore` [#118](https://github.com/Dark-Avian-Labs/TC-Bot/pull/118): update dependencies
+- **v7.8.14** `chore` [#119](https://github.com/Dark-Avian-Labs/TC-Bot/pull/119): update dependencies

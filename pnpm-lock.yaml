@@ -32,7 +32,7 @@ importers:
         specifier: ^14.26.4
         version: 14.26.4
       google-auth-library:
-        specifier: ^10.9.0
+        specifier: ^10.7.0
         version: 10.9.0
     devDependencies:
       '@semantic-release/commit-analyzer':
@@ -72,7 +72,7 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
       vite:
-        specifier: ^8.1.0
+        specifier: ^8.0.16
         version: 8.1.0(@types/node@26.0.1)(esbuild@0.28.1)(tsx@4.22.4)
       vitest:
         specifier: ^4.1.9
