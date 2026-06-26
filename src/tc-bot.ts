@@ -22,6 +22,7 @@ import { discoverCommandFiles } from './helper/commandDiscovery.js';
 import { ENABLE_LEGACY_MESSAGE_COMMANDS, TIMERS } from './helper/constants.js';
 import { debugLogger } from './helper/debugLogger.js';
 import { stopIdempotencyCleanup } from './helper/idempotencyGuard.js';
+import { isTransientNetworkError } from './helper/logError.js';
 import { calculateMopupTiming } from './helper/mopup.js';
 import { getSheetRowsCached, registerSheetTitle } from './helper/sheetsCache.js';
 import * as usageTracker from './helper/usageTracker.js';
@@ -486,10 +487,21 @@ async function runMopupUpdateIfDue(trigger: 'startup' | 'timer'): Promise<void> 
       updatedChannelIds,
     });
   } catch (error) {
-    debugLogger.error('MOPUP', 'Unhandled mopup timer update failure', {
-      trigger,
-      error: error as Error,
-    });
+    if (isTransientNetworkError(error)) {
+      debugLogger.warn(
+        'MOPUP',
+        'Mopup channel update skipped: Discord API unreachable (will retry)',
+        {
+          trigger,
+          error: error as Error,
+        },
+      );
+    } else {
+      debugLogger.error('MOPUP', 'Mopup channel update failed', {
+        trigger,
+        error: error as Error,
+      });
+    }
   } finally {
     mopupUpdateInProgress = false;
     mopupUpdateStartedAtMs = 0;
@@ -524,100 +536,92 @@ function waitForClientReady(timeoutMs = 30000): Promise<void> {
 async function updateMopupChannels(): Promise<string[]> {
   debugLogger.step('MOPUP', 'Updating mopup channels');
   const updatedChannelIds: string[] = [];
-  try {
-    debugLogger.debug('MOPUP', 'Calculating mopup timing');
-    const mopupInfo = calculateMopupTiming();
-    debugLogger.debug('MOPUP', 'Mopup timing calculated', {
-      status: mopupInfo.status,
-      time: mopupInfo.time,
-    });
+  debugLogger.debug('MOPUP', 'Calculating mopup timing');
+  const mopupInfo = calculateMopupTiming();
+  debugLogger.debug('MOPUP', 'Mopup timing calculated', {
+    status: mopupInfo.status,
+    time: mopupInfo.time,
+  });
 
-    const getChannel = async (
-      channelId: string,
-    ): Promise<ReturnType<typeof client.channels.cache.get> | null> => {
-      const cached = client.channels.cache.get(channelId);
-      if (cached) return cached;
-      try {
-        return await client.channels.fetch(channelId);
-      } catch (error) {
-        debugLogger.warn('MOPUP', 'Failed to fetch channel', {
-          channelId,
-          error: error as Error,
-        });
-        return null;
-      }
-    };
+  const getChannel = async (
+    channelId: string,
+  ): Promise<ReturnType<typeof client.channels.cache.get> | null> => {
+    const cached = client.channels.cache.get(channelId);
+    if (cached) return cached;
+    try {
+      return await client.channels.fetch(channelId);
+    } catch (error) {
+      debugLogger.warn('MOPUP', 'Failed to fetch channel', {
+        channelId,
+        error: error as Error,
+      });
+      return null;
+    }
+  };
 
-    const [channel1, channel2] = await Promise.all([
-      getChannel(process.env.CHANNEL_ID1!),
-      getChannel(process.env.CHANNEL_ID2!),
-    ]);
-    debugLogger.debug('MOPUP', 'Retrieved channels for mopup update', {
-      channel1Found: !!channel1,
-      channel2Found: !!channel2,
-    });
+  const [channel1, channel2] = await Promise.all([
+    getChannel(process.env.CHANNEL_ID1!),
+    getChannel(process.env.CHANNEL_ID2!),
+  ]);
+  debugLogger.debug('MOPUP', 'Retrieved channels for mopup update', {
+    channel1Found: !!channel1,
+    channel2Found: !!channel2,
+  });
 
-    const isRenameable = (ch: typeof channel1): ch is VoiceChannel | StageChannel =>
-      ch?.type === ChannelType.GuildVoice || ch?.type === ChannelType.GuildStageVoice;
+  const isRenameable = (ch: typeof channel1): ch is VoiceChannel | StageChannel =>
+    ch?.type === ChannelType.GuildVoice || ch?.type === ChannelType.GuildStageVoice;
 
-    const tryRenameChannel = async (
-      channel: typeof channel1,
-      newName: string,
-      updatedIds: string[],
-      label: 'channel 1' | 'channel 2',
-    ): Promise<void> => {
-      if (!isRenameable(channel)) return;
+  const tryRenameChannel = async (
+    channel: typeof channel1,
+    newName: string,
+    updatedIds: string[],
+    label: 'channel 1' | 'channel 2',
+  ): Promise<void> => {
+    if (!isRenameable(channel)) return;
 
-      if (channel.name === newName) {
-        debugLogger.debug('MOPUP', `Skipping ${label} rename (unchanged)`, {
-          channelId: channel.id,
-          currentName: channel.name,
-        });
-        return;
-      }
+    if (channel.name === newName) {
+      debugLogger.debug('MOPUP', `Skipping ${label} rename (unchanged)`, {
+        channelId: channel.id,
+        currentName: channel.name,
+      });
+      return;
+    }
 
-      const waitMs = usageTracker.getMopupUpdateWaitMs(
-        getMopupChannelStateKey(channel.id),
-        TIMERS.MOPUP_INTERVAL_MS,
-      );
-      if (waitMs > 0) {
-        debugLogger.warn('MOPUP', `Skipping ${label} rename: channel cooldown still active`, {
-          channelId: channel.id,
-          remainingSeconds: Math.ceil(waitMs / 1000),
-        });
-        return;
-      }
-
-      debugLogger.debug('MOPUP', `Updating ${label} name`, { newName });
-      await channel.setName(newName);
-      usageTracker.setMopupUpdateTimestamp(getMopupChannelStateKey(channel.id));
-      updatedIds.push(channel.id);
-      debugLogger.step(
-        'MOPUP',
-        `${label.charAt(0).toUpperCase()}${label.slice(1)} name updated successfully`,
-      );
-    };
-
-    const statusEmoji = mopupInfo.status === 'ACTIVE' ? '🟢' : '🔴';
-    await tryRenameChannel(
-      channel1,
-      `${statusEmoji} ${mopupInfo.status} Mopup`,
-      updatedChannelIds,
-      'channel 1',
+    const waitMs = usageTracker.getMopupUpdateWaitMs(
+      getMopupChannelStateKey(channel.id),
+      TIMERS.MOPUP_INTERVAL_MS,
     );
-    await tryRenameChannel(
-      channel2,
-      `Time remaining: ${mopupInfo.time}`,
-      updatedChannelIds,
-      'channel 2',
+    if (waitMs > 0) {
+      debugLogger.warn('MOPUP', `Skipping ${label} rename: channel cooldown still active`, {
+        channelId: channel.id,
+        remainingSeconds: Math.ceil(waitMs / 1000),
+      });
+      return;
+    }
+
+    debugLogger.debug('MOPUP', `Updating ${label} name`, { newName });
+    await channel.setName(newName);
+    usageTracker.setMopupUpdateTimestamp(getMopupChannelStateKey(channel.id));
+    updatedIds.push(channel.id);
+    debugLogger.step(
+      'MOPUP',
+      `${label.charAt(0).toUpperCase()}${label.slice(1)} name updated successfully`,
     );
-    debugLogger.info('MOPUP', 'Mopup channels updated successfully');
-    return updatedChannelIds;
-  } catch (error) {
-    debugLogger.error('MOPUP', 'Failed to update mopup channels', {
-      error: error as Error,
-    });
-    console.error('[EVENT:MOPUP] Failed to update mopup channels:', error);
-    throw error;
-  }
+  };
+
+  const statusEmoji = mopupInfo.status === 'ACTIVE' ? '🟢' : '🔴';
+  await tryRenameChannel(
+    channel1,
+    `${statusEmoji} ${mopupInfo.status} Mopup`,
+    updatedChannelIds,
+    'channel 1',
+  );
+  await tryRenameChannel(
+    channel2,
+    `Time remaining: ${mopupInfo.time}`,
+    updatedChannelIds,
+    'channel 2',
+  );
+  debugLogger.info('MOPUP', 'Mopup channels updated successfully');
+  return updatedChannelIds;
 }
