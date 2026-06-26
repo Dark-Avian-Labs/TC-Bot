@@ -1,7 +1,7 @@
 # Discord Bot for Ark of War
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
-![Static Badge](https://img.shields.io/badge/Node.js-25-red?style=for-the-badge)
+![Static Badge](https://img.shields.io/badge/Node.js-26-red?style=for-the-badge)
 ![Static Badge](https://img.shields.io/badge/TypeScript-5.9-blue?style=for-the-badge)
 ![NPM Version](https://img.shields.io/npm/v/discord.js?style=for-the-badge&label=Discord.js&color=blue)
 ![NPM Version](https://img.shields.io/npm/v/%40dotenvx%2Fdotenvx?style=for-the-badge&label=.envx&color=green)
@@ -29,7 +29,7 @@ TypeScript is used in strict mode by now, tests are automated via Vitest and the
 
 ## Requirements
 
-- Node.js 25+
+- Node.js 26+
 - pnpm 10+
 
 ## Setup

@@ -5,7 +5,7 @@ permissions:
   pull-requests: read
 
 env:
-  NODE_VERSION: 25
+  NODE_VERSION: 26
 
 on:
   push:
