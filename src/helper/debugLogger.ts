@@ -1,3 +1,5 @@
+import { serializeErrorForLog } from './logError.js';
+
 type LogLevel = 'INFO' | 'DEBUG' | 'WARN' | 'ERROR' | 'STEP';
 
 interface LogContext {
@@ -27,11 +29,7 @@ class DebugLogger {
 
     for (const [key, value] of Object.entries(context)) {
       if (value instanceof Error) {
-        serialized[key] = {
-          name: value.name,
-          message: value.message,
-          stack: value.stack,
-        };
+        serialized[key] = serializeErrorForLog(value);
       } else {
         serialized[key] = value;
       }
