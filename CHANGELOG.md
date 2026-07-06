@@ -112,3 +112,4 @@ Historical entries through the current release were **backfilled from merged PR 
 - **v7.8.13** `chore` [#118](https://github.com/Dark-Avian-Labs/TC-Bot/pull/118): update dependencies
 - **v7.8.14** `chore` [#119](https://github.com/Dark-Avian-Labs/TC-Bot/pull/119): update dependencies
 - **v7.8.15** `fix` [#120](https://github.com/Dark-Avian-Labs/TC-Bot/pull/120): better error handling
+- **v7.8.16** `chore` [#122](https://github.com/Dark-Avian-Labs/TC-Bot/pull/122): dependabot/npm_and_yarn/dotenvx/dotenvx 2.1.4
