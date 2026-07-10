@@ -1,6 +1,7 @@
 # TC-Bot Workflows
 
 ## Command Deployment Process
+
 1. **Preparation**:
    - Edit/create command in `/src/commands/[module]/[command].ts`
    - Add examples to command data for documentation
@@ -17,6 +18,7 @@
    - Check error handling paths
 
 ## Interaction Handling Flow
+
 1. **Event Dispatch**:
    - `interactionsCreate` event receives interaction
    - Bot verifies interaction is from command
@@ -33,6 +35,7 @@
    - Handle string select menus via handleSelect
 
 ## Error Recovery Patterns
+
 1. **Network Resilience**:
    - `isTransientNetworkError` in `logError.js` detects transient failures
    - Automatic retries for Google Sheets API calls
@@ -49,6 +52,7 @@
    - Environment validation at startup
 
 ## Testing Workflow
+
 1. **Unit Tests**:
    - Located in `/tests/` directory
    - Run with `pnpm run test` or `pnpm run test:watch`
@@ -66,6 +70,7 @@
    - `/tests/sheetsCache.test.ts` - Tests Google Sheets caching
 
 ## Release Process
+
 1. **Version Bumping**:
    - Automatic via semantic-release
    - Conventional commits required
@@ -79,10 +84,11 @@
 3. **Release Artifacts**:
    - Built JavaScript in `/dist/` directory
    - TypeScript definitions included
-   .d.ts files
+     .d.ts files
    - Release notes in CHANGELOG.md
 
 ## Operational Procedures
+
 1. **Startup Sequence**:
    - Validate required environment variables
    - Initialize Google Sheets connection
@@ -102,6 +108,7 @@
    - Destroy Discord client connection
 
 ## Environment Configuration
+
 1. **Required Variables**:
    - `TOKEN`: Discord bot token
    - `CLIENT_ID`: Discord application ID
