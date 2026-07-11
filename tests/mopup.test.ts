@@ -1,7 +1,14 @@
 import { Colors } from 'discord.js';
 import { describe, it, expect } from 'vitest';
 
-import { calculateMopupTiming, getMopupWindow, determineMopupStatus, formatTime } from '../src/helper/mopup.js';
+import {
+  calculateMopupTiming,
+  getMopupWindow,
+  determineMopupStatus,
+  formatTime,
+  getMopupOpenLabel,
+  buildMopupAnnouncementEmbed,
+} from '../src/helper/mopup.js';
 
 describe('formatTime', () => {
   it('formats milliseconds to HH:MM:SS', () => {
@@ -114,5 +121,34 @@ describe('calculateMopupTiming', () => {
     const nowSeconds = Math.floor(Date.now() / 1000);
     const result = calculateMopupTiming();
     expect(result.timestamp).toBeGreaterThanOrEqual(nowSeconds);
+  });
+});
+
+describe('getMopupOpenLabel', () => {
+  it('maps ACTIVE to open and INACTIVE to closed', () => {
+    expect(getMopupOpenLabel('ACTIVE')).toBe('open');
+    expect(getMopupOpenLabel('INACTIVE')).toBe('closed');
+  });
+});
+
+describe('buildMopupAnnouncementEmbed', () => {
+  it('includes open/closed description and timing fields', () => {
+    const mopupInfo = {
+      status: 'ACTIVE' as const,
+      color: Colors.Green,
+      time: '01:23:45',
+      timestamp: 1_700_000_000,
+    };
+    const embed = buildMopupAnnouncementEmbed(0n, mopupInfo).toJSON();
+
+    expect(embed.title).toBe('Mopup');
+    expect(embed.description).toBe('Mopup is now **open**.');
+    expect(embed.fields).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: 'Status:', value: '```asciidoc\nACTIVE```' }),
+        expect.objectContaining({ name: 'Time remaining:', value: '```asciidoc\n01:23:45```' }),
+        expect.objectContaining({ name: 'Local time:', value: '<t:1700000000:f>' }),
+      ]),
+    );
   });
 });

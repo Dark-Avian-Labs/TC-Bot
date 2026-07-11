@@ -3,7 +3,12 @@ import path from 'node:path';
 
 import Database, { type Statement } from 'better-sqlite3';
 
-import type { CommandUsage, MetricsTotals, MetricsTopCommand } from '../types/index.js';
+import type {
+  CommandUsage,
+  MetricsTotals,
+  MetricsTopCommand,
+  MopupStatus,
+} from '../types/index.js';
 
 const DB_PATH = process.env.SQLITE_DB_PATH || './data/metrics.db';
 const CHECKPOINT_INTERVAL_MS = Number(process.env.CHECKPOINT_INTERVAL_MS || 300000);
@@ -44,6 +49,8 @@ let topCommandsStmt: Statement | null = null;
 let cleanupStmt: Statement | null = null;
 let upsertMopupStateStmt: Statement | null = null;
 let getMopupStateStmt: Statement | null = null;
+let upsertMopupKvStmt: Statement | null = null;
+let getMopupKvStmt: Statement | null = null;
 let acquireEventLockStmt: Statement | null = null;
 let cleanupExpiredEventLocksStmt: Statement | null = null;
 let droppedUsageEvents = 0;
@@ -110,6 +117,13 @@ function initDb(): void {
   `);
 
   db.exec(`
+    CREATE TABLE IF NOT EXISTS mopup_kv_state (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    );
+  `);
+
+  db.exec(`
     CREATE TABLE IF NOT EXISTS event_dedupe_lock (
       key TEXT PRIMARY KEY,
       expires_at_ms INTEGER NOT NULL
@@ -158,6 +172,18 @@ function initDb(): void {
   getMopupStateStmt = db.prepare(`
     SELECT updated_at_ms
     FROM mopup_update_state
+    WHERE key = ?
+  `);
+
+  upsertMopupKvStmt = db.prepare(`
+    INSERT INTO mopup_kv_state (key, value)
+    VALUES (?, ?)
+    ON CONFLICT(key) DO UPDATE SET value = excluded.value
+  `);
+
+  getMopupKvStmt = db.prepare(`
+    SELECT value
+    FROM mopup_kv_state
     WHERE key = ?
   `);
 
@@ -342,6 +368,42 @@ export function setMopupUpdateTimestamp(key: string, timestampMs = Date.now()): 
     upsertMopupStateStmt.run(String(key), Math.floor(timestampMs));
   } catch (e) {
     console.error('[USAGE:SQLite] Failed to set mopup update timestamp:', e);
+  }
+}
+
+const MOPUP_LAST_STATUS_KEY = 'last-status';
+
+function isMopupStatus(value: string): value is MopupStatus {
+  return value === 'ACTIVE' || value === 'INACTIVE';
+}
+
+export type MopupLastKnownStatusResult = { ok: true; status: MopupStatus | null } | { ok: false };
+
+export function getMopupLastKnownStatus(): MopupLastKnownStatusResult {
+  try {
+    initDb();
+    if (!getMopupKvStmt) return { ok: false };
+    const row = getMopupKvStmt.get(MOPUP_LAST_STATUS_KEY) as { value?: string } | undefined;
+    const value = row?.value;
+    return {
+      ok: true,
+      status: value && isMopupStatus(value) ? value : null,
+    };
+  } catch (e) {
+    console.error('[USAGE:SQLite] Failed to get mopup last known status:', e);
+    return { ok: false };
+  }
+}
+
+export function setMopupLastKnownStatus(status: MopupStatus): boolean {
+  try {
+    initDb();
+    if (!upsertMopupKvStmt) return false;
+    upsertMopupKvStmt.run(MOPUP_LAST_STATUS_KEY, status);
+    return true;
+  } catch (e) {
+    console.error('[USAGE:SQLite] Failed to set mopup last known status:', e);
+    return false;
   }
 }
 
