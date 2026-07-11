@@ -26,8 +26,10 @@ export interface Event {
   execute(...args: unknown[]): Promise<void> | void;
 }
 
+export type MopupStatus = 'ACTIVE' | 'INACTIVE';
+
 export interface MopupInfo {
-  status: string;
+  status: MopupStatus;
   color: number;
   time: string;
   timestamp: number;

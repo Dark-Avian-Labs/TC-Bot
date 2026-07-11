@@ -12,6 +12,7 @@ import {
   GatewayIntentBits,
   ChannelType,
   Events,
+  type SendableChannels,
   type VoiceChannel,
   type StageChannel,
 } from 'discord.js';
@@ -23,7 +24,7 @@ import { ENABLE_LEGACY_MESSAGE_COMMANDS, TIMERS } from './helper/constants.js';
 import { debugLogger } from './helper/debugLogger.js';
 import { stopIdempotencyCleanup } from './helper/idempotencyGuard.js';
 import { isTransientNetworkError } from './helper/logError.js';
-import { calculateMopupTiming } from './helper/mopup.js';
+import { calculateMopupTiming, buildMopupAnnouncementEmbed } from './helper/mopup.js';
 import { getSheetRowsCached, registerSheetTitle } from './helper/sheetsCache.js';
 import * as usageTracker from './helper/usageTracker.js';
 import type { Command, ExtendedClient, GoogleSheetsClient } from './types/index.js';
@@ -144,7 +145,10 @@ const MOPUP_LOCK_WARN_EVERY_MS = 60 * 1000;
     debugLogger.step('BOOT', 'Step 7: Starting mopup timer');
     startMopupTimer();
 
-    debugLogger.step('BOOT', 'Step 8: Running initial mopup schedule check');
+    debugLogger.step('BOOT', 'Step 8: Syncing mopup status (no announcement on boot)');
+    syncMopupStatusOnStartup();
+
+    debugLogger.step('BOOT', 'Step 9: Running initial mopup schedule check');
     await runMopupUpdateIfDue('startup');
     debugLogger.boot('Bot initialization completed successfully');
   } catch (error) {
@@ -417,24 +421,117 @@ async function loadEvents(): Promise<void> {
 }
 
 function startMopupTimer(): void {
-  if (!process.env.CHANNEL_ID1 || !process.env.CHANNEL_ID2) {
-    debugLogger.warn('MOPUP', 'Mopup timer disabled: Channel IDs missing', {
-      hasChannel1: !!process.env.CHANNEL_ID1,
-      hasChannel2: !!process.env.CHANNEL_ID2,
-    });
-    console.warn('[BOOT] Mopup timer disabled: Channel IDs missing');
+  const hasChannelRenames = Boolean(process.env.CHANNEL_ID1 && process.env.CHANNEL_ID2);
+  const hasAnnouncements = Boolean(process.env.CHANNEL_ID3);
+
+  if (!hasChannelRenames && !hasAnnouncements) {
+    debugLogger.warn('MOPUP', 'Mopup timer disabled: no channel IDs configured');
+    console.warn('[BOOT] Mopup timer disabled: no channel IDs configured');
     return;
   }
+
   debugLogger.step('MOPUP', 'Starting mopup timer', {
     pollInterval: `${TIMERS.MOPUP_POLL_INTERVAL_MS / 1000}s`,
     minUpdateInterval: `${TIMERS.MOPUP_INTERVAL_MS / 1000 / 60} minutes`,
     channel1: process.env.CHANNEL_ID1,
     channel2: process.env.CHANNEL_ID2,
+    channel3: process.env.CHANNEL_ID3,
+    channelRenames: hasChannelRenames,
+    announcements: hasAnnouncements,
   });
+
+  if (!hasChannelRenames) {
+    debugLogger.warn('MOPUP', 'Mopup channel rename disabled: Channel IDs missing', {
+      hasChannel1: !!process.env.CHANNEL_ID1,
+      hasChannel2: !!process.env.CHANNEL_ID2,
+    });
+    console.warn('[BOOT] Mopup channel rename disabled: Channel IDs missing');
+  }
+
   mopupTimer = setInterval(() => {
     void runMopupUpdateIfDue('timer');
   }, TIMERS.MOPUP_POLL_INTERVAL_MS);
   mopupTimer.unref?.();
+}
+
+function syncMopupStatusOnStartup(): void {
+  const mopupInfo = calculateMopupTiming();
+  const synced = usageTracker.setMopupLastKnownStatus(mopupInfo.status);
+  if (!synced) {
+    debugLogger.warn('MOPUP', 'Failed to sync mopup status on startup', {
+      status: mopupInfo.status,
+    });
+    return;
+  }
+  debugLogger.info('MOPUP', 'Synced mopup status on startup (no announcement)', {
+    status: mopupInfo.status,
+  });
+}
+
+async function tryAnnounceMopupStatusChange(
+  mopupInfo: ReturnType<typeof calculateMopupTiming>,
+): Promise<void> {
+  if (!process.env.CHANNEL_ID3) return;
+
+  const lastStatusResult = usageTracker.getMopupLastKnownStatus();
+  if (!lastStatusResult.ok) {
+    debugLogger.warn('MOPUP', 'Skipping mopup announcement: failed to read last known status');
+    return;
+  }
+
+  const lastStatus = lastStatusResult.status;
+  if (lastStatus === mopupInfo.status) return;
+
+  if (!lastStatus) {
+    if (!usageTracker.setMopupLastKnownStatus(mopupInfo.status)) {
+      debugLogger.warn('MOPUP', 'Failed to initialize mopup status without announcement', {
+        status: mopupInfo.status,
+      });
+    }
+    return;
+  }
+
+  debugLogger.step('MOPUP', 'Mopup status changed, posting announcement', {
+    previousStatus: lastStatus,
+    currentStatus: mopupInfo.status,
+    channelId: process.env.CHANNEL_ID3,
+  });
+
+  const cached = client.channels.cache.get(process.env.CHANNEL_ID3);
+  let channel: SendableChannels | null = cached?.isSendable() ? cached : null;
+  if (!channel) {
+    try {
+      const fetched = await client.channels.fetch(process.env.CHANNEL_ID3);
+      channel = fetched?.isSendable() ? fetched : null;
+    } catch (error) {
+      debugLogger.warn('MOPUP', 'Failed to fetch announcement channel', {
+        channelId: process.env.CHANNEL_ID3,
+        error: error as Error,
+      });
+      return;
+    }
+  }
+
+  if (!channel) {
+    debugLogger.warn('MOPUP', 'Skipping mopup announcement: channel unavailable', {
+      channelId: process.env.CHANNEL_ID3,
+    });
+    return;
+  }
+
+  const startHr = process.hrtime.bigint();
+  await channel.send({ embeds: [buildMopupAnnouncementEmbed(startHr, mopupInfo)] });
+  if (!usageTracker.setMopupLastKnownStatus(mopupInfo.status)) {
+    debugLogger.error('MOPUP', 'Posted mopup announcement but failed to persist status', {
+      status: mopupInfo.status,
+      channelId: channel.id,
+    });
+    return;
+  }
+  debugLogger.info('MOPUP', 'Posted mopup status announcement', {
+    status: mopupInfo.status,
+    channelId: channel.id,
+  });
 }
 
 function getMopupChannelStateKey(channelId: string): string {
@@ -488,16 +585,12 @@ async function runMopupUpdateIfDue(trigger: 'startup' | 'timer'): Promise<void> 
     });
   } catch (error) {
     if (isTransientNetworkError(error)) {
-      debugLogger.warn(
-        'MOPUP',
-        'Mopup channel update skipped: Discord API unreachable (will retry)',
-        {
-          trigger,
-          error: error as Error,
-        },
-      );
+      debugLogger.warn('MOPUP', 'Mopup refresh skipped: Discord API unreachable (will retry)', {
+        trigger,
+        error: error as Error,
+      });
     } else {
-      debugLogger.error('MOPUP', 'Mopup channel update failed', {
+      debugLogger.error('MOPUP', 'Mopup refresh failed', {
         trigger,
         error: error as Error,
       });
@@ -534,7 +627,7 @@ function waitForClientReady(timeoutMs = 30000): Promise<void> {
 }
 
 async function updateMopupChannels(): Promise<string[]> {
-  debugLogger.step('MOPUP', 'Updating mopup channels');
+  debugLogger.step('MOPUP', 'Running mopup refresh');
   const updatedChannelIds: string[] = [];
   debugLogger.debug('MOPUP', 'Calculating mopup timing');
   const mopupInfo = calculateMopupTiming();
@@ -542,6 +635,26 @@ async function updateMopupChannels(): Promise<string[]> {
     status: mopupInfo.status,
     time: mopupInfo.time,
   });
+
+  try {
+    await tryAnnounceMopupStatusChange(mopupInfo);
+  } catch (error) {
+    if (isTransientNetworkError(error)) {
+      debugLogger.warn(
+        'MOPUP',
+        'Mopup announcement skipped: Discord API unreachable (will retry)',
+        { error: error as Error },
+      );
+    } else {
+      debugLogger.error('MOPUP', 'Failed to post mopup status announcement', {
+        error: error as Error,
+      });
+    }
+  }
+
+  if (!process.env.CHANNEL_ID1 || !process.env.CHANNEL_ID2) {
+    return updatedChannelIds;
+  }
 
   const getChannel = async (
     channelId: string,

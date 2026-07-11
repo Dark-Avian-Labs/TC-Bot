@@ -1,6 +1,6 @@
 import { EmbedBuilder, Colors } from 'discord.js';
 
-import type { MopupInfo } from '../types/index.js';
+import type { MopupInfo, MopupStatus } from '../types/index.js';
 import { BOT_ICON_URL } from './constants.js';
 import { formatHrDuration } from './hrDuration.js';
 
@@ -73,16 +73,37 @@ function formatTime(ms: number): string {
   return new Date(Math.abs(ms)).toISOString().slice(11, 19);
 }
 
+function getMopupOpenLabel(status: MopupStatus): 'open' | 'closed' {
+  return status === 'ACTIVE' ? 'open' : 'closed';
+}
+
+function buildMopupFields(mopupInfo: MopupInfo): { name: string; value: string }[] {
+  return [
+    { name: 'Status:', value: `\`\`\`asciidoc\n${mopupInfo.status}\`\`\`` },
+    { name: 'Time remaining:', value: `\`\`\`asciidoc\n${mopupInfo.time}\`\`\`` },
+    { name: 'Local time:', value: `<t:${mopupInfo.timestamp}:f>` },
+  ];
+}
+
 function buildMopupEmbed(startHr: bigint): EmbedBuilder {
-  const { status, color, time, timestamp } = calculateMopupTiming();
+  const mopupInfo = calculateMopupTiming();
   return new EmbedBuilder()
-    .setColor(color)
+    .setColor(mopupInfo.color)
     .setTitle(MOPUP_EMBED_TITLE)
-    .addFields(
-      { name: 'Status:', value: `\`\`\`asciidoc\n${status}\`\`\`` },
-      { name: 'Time remaining:', value: `\`\`\`asciidoc\n${time}\`\`\`` },
-      { name: 'Local time:', value: `<t:${timestamp}:f>` },
-    )
+    .addFields(buildMopupFields(mopupInfo))
+    .setFooter({ text: `via tc-bot - ${formatHrDuration(startHr)}`, iconURL: BOT_ICON_URL });
+}
+
+function buildMopupAnnouncementEmbed(
+  startHr: bigint,
+  mopupInfo = calculateMopupTiming(),
+): EmbedBuilder {
+  const openLabel = getMopupOpenLabel(mopupInfo.status);
+  return new EmbedBuilder()
+    .setColor(mopupInfo.color)
+    .setTitle(MOPUP_EMBED_TITLE)
+    .setDescription(`Mopup is now **${openLabel}**.`)
+    .addFields(buildMopupFields(mopupInfo))
     .setFooter({ text: `via tc-bot - ${formatHrDuration(startHr)}`, iconURL: BOT_ICON_URL });
 }
 
@@ -92,5 +113,7 @@ export {
   getMopupWindow,
   determineMopupStatus,
   formatTime,
+  getMopupOpenLabel,
   buildMopupEmbed,
+  buildMopupAnnouncementEmbed,
 };
