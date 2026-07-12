@@ -118,3 +118,4 @@ Historical entries through the current release were **backfilled from merged PR 
 - **v7.8.18** `chore` [#124](https://github.com/Dark-Avian-Labs/TC-Bot/pull/124): update dependencies
 - **v7.8.19** `chore` [#124](https://github.com/Dark-Avian-Labs/TC-Bot/pull/124): update dependencies
 - **v7.9.0** `feat` [#125](https://github.com/Dark-Avian-Labs/TC-Bot/pull/125): auto mopup notifications
+- **v7.9.1** `chore` [#130](https://github.com/Dark-Avian-Labs/TC-Bot/pull/130): update dependencies
