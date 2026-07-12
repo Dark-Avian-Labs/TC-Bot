@@ -132,7 +132,7 @@ describe('getMopupOpenLabel', () => {
 });
 
 describe('buildMopupAnnouncementEmbed', () => {
-  it('includes open/closed description and timing fields', () => {
+  it('includes status-changed title and timing fields', () => {
     const mopupInfo = {
       status: 'ACTIVE' as const,
       color: Colors.Green,
@@ -141,8 +141,8 @@ describe('buildMopupAnnouncementEmbed', () => {
     };
     const embed = buildMopupAnnouncementEmbed(0n, mopupInfo).toJSON();
 
-    expect(embed.title).toBe('Mopup');
-    expect(embed.description).toBe('Mopup is now **open**.');
+    expect(embed.title).toBe('Mopup status has changed!');
+    expect(embed.description).toBeUndefined();
     expect(embed.fields).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ name: 'Status:', value: '```asciidoc\nACTIVE```' }),

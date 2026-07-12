@@ -98,11 +98,9 @@ function buildMopupAnnouncementEmbed(
   startHr: bigint,
   mopupInfo = calculateMopupTiming(),
 ): EmbedBuilder {
-  const openLabel = getMopupOpenLabel(mopupInfo.status);
   return new EmbedBuilder()
     .setColor(mopupInfo.color)
-    .setTitle(MOPUP_EMBED_TITLE)
-    .setDescription(`Mopup is now **${openLabel}**.`)
+    .setTitle(MOPUP_EMBED_TITLE + ` status has changed!`)
     .addFields(buildMopupFields(mopupInfo))
     .setFooter({ text: `via tc-bot - ${formatHrDuration(startHr)}`, iconURL: BOT_ICON_URL });
 }
