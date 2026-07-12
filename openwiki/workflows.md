@@ -20,7 +20,7 @@
 ## Interaction Handling Flow
 
 1. **Event Dispatch**:
-   - `interactionsCreate` event receives interaction
+   - `interactionCreate` event receives interaction
    - Bot verifies interaction is from command
    - Looks up command in client.commands collection
 
