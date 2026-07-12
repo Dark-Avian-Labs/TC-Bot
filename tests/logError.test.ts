@@ -58,4 +58,13 @@ describe('serializeErrorForLog', () => {
       stack: error.stack,
     });
   });
+
+  it('returns UnknownError shape for non-Error values', () => {
+    const error = 'rate limited';
+
+    expect(serializeErrorForLog(error)).toEqual({
+      name: 'UnknownError',
+      message: String(error),
+    });
+  });
 });
