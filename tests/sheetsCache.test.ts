@@ -11,6 +11,10 @@ describe('computeProactiveRefreshDelayMs', () => {
     expect(computeProactiveRefreshDelayMs(60_000)).toBe(30_000);
   });
 
+  it('handles the exact minimum lead-time boundary', () => {
+    expect(computeProactiveRefreshDelayMs(200_000)).toBe(170_000);
+  });
+
   it('caps the lead time for long TTLs', () => {
     expect(computeProactiveRefreshDelayMs(3_600_000)).toBe(3_480_000);
   });
