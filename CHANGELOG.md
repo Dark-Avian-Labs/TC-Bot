@@ -17,6 +17,7 @@ Historical entries through the current release were **backfilled from merged PR 
 - **v5.0.0** `chore` [#5](https://github.com/Dark-Avian-Labs/tc-bot/pull/5): V5.x
 - **v6.0.0** `feat` ([3a8348b](https://github.com/Dark-Avian-Labs/tc-bot/commit/3a8348be798368499c2177074c3ba764ef123131)): ES6 modules, MySQL→SQLite, PM2 tracing, metrics command, env/config restructure (tag [`v6.0.0`](https://github.com/Dark-Avian-Labs/tc-bot/releases/tag/v6.0.0))
 - **v7.0.0** `chore` [#6](https://github.com/Dark-Avian-Labs/tc-bot/pull/6): Converted to TypeScript
+- _Note: The following PRs (#7–#13) were grouped into the same release tag **v7.4.1** (maintenance/dependency updates)._
 - **v7.4.1** `ci(deps)` [#7](https://github.com/Dark-Avian-Labs/tc-bot/pull/7): bump actions/setup-node from 4 to 6
 - **v7.4.1** `ci(deps)` [#8](https://github.com/Dark-Avian-Labs/tc-bot/pull/8): bump actions/checkout from 4 to 6
 - **v7.4.1** `chore(deps)` [#9](https://github.com/Dark-Avian-Labs/tc-bot/pull/9): bump @dotenvx/dotenvx from 1.51.2 to 1.51.4 in the production-dependencies group
@@ -114,6 +115,6 @@ Historical entries through the current release were **backfilled from merged PR 
 - **v7.8.15** `fix` [#120](https://github.com/Dark-Avian-Labs/TC-Bot/pull/120): better error handling
 - **v7.8.16** `chore` [#122](https://github.com/Dark-Avian-Labs/TC-Bot/pull/122): dependabot/npm_and_yarn/dotenvx/dotenvx 2.1.4
 - **v7.8.17** `chore` [#123](https://github.com/Dark-Avian-Labs/TC-Bot/pull/123): update CI discord status
-- **v7.8.18** `chore`: Merge branch 'main' of https://github.com/Dark-Avian-Labs/tc-bot
+- **v7.8.18** `chore` [#124](https://github.com/Dark-Avian-Labs/TC-Bot/pull/124): update dependencies
 - **v7.8.19** `chore` [#124](https://github.com/Dark-Avian-Labs/TC-Bot/pull/124): update dependencies
 - **v7.9.0** `feat` [#125](https://github.com/Dark-Avian-Labs/TC-Bot/pull/125): auto mopup notifications
