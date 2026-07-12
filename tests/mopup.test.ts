@@ -8,6 +8,7 @@ import {
   formatTime,
   getMopupOpenLabel,
   buildMopupAnnouncementEmbed,
+  MOPUP_EMBED_TITLE,
 } from '../src/helper/mopup.js';
 
 describe('formatTime', () => {
@@ -141,7 +142,7 @@ describe('buildMopupAnnouncementEmbed', () => {
     };
     const embed = buildMopupAnnouncementEmbed(0n, mopupInfo).toJSON();
 
-    expect(embed.title).toBe('Mopup status has changed!');
+    expect(embed.title).toBe(`${MOPUP_EMBED_TITLE} status has changed!`);
     expect(embed.description).toBeUndefined();
     expect(embed.fields).toEqual(
       expect.arrayContaining([
