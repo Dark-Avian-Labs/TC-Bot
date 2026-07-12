@@ -25,6 +25,12 @@ describe('isTransientNetworkError', () => {
     expect(isTransientNetworkError(error)).toBe(true);
   });
 
+  it('ignores non-string error codes', () => {
+    const error = Object.assign(new Error('read ECONNRESET'), { code: 12345 });
+
+    expect(isTransientNetworkError(error)).toBe(false);
+  });
+
   it('does not treat unexpected errors as transient', () => {
     const error = new Error('Missing Access');
 
@@ -56,6 +62,15 @@ describe('serializeErrorForLog', () => {
       name: 'Error',
       message: 'Missing Access',
       stack: error.stack,
+    });
+  });
+
+  it('returns UnknownError shape for non-Error values', () => {
+    const error = 'rate limited';
+
+    expect(serializeErrorForLog(error)).toEqual({
+      name: 'UnknownError',
+      message: String(error),
     });
   });
 });
