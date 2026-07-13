@@ -17,8 +17,8 @@ importers:
   .:
     dependencies:
       '@dotenvx/dotenvx':
-        specifier: ^2.4.1
-        version: 2.4.1
+        specifier: ^2.6.0
+        version: 2.6.0
       '@googleapis/sheets':
         specifier: ^13.0.2
         version: 13.0.2
@@ -132,8 +132,8 @@ packages:
     resolution: {integrity: sha512-wPlQDxEmlDg5IxhJPuxXr3Vy9AjYq5xCvFWGJyD7w7Np8ZGu+Mc+97LCoEc/+AYCo2IDpKioiH0/c/mj5ZR9Uw==}
     engines: {node: '>=16.11.0'}
 
-  '@dotenvx/dotenvx@2.4.1':
-    resolution: {integrity: sha512-kwt04HYe8SmyYRPW6/nuM8+MSXav+hMEQvI7SRJTKdU0kM57lf/R7NvxvkC53OnWtTERN0v4DOShXn98ev3hfw==}
+  '@dotenvx/dotenvx@2.6.0':
+    resolution: {integrity: sha512-5+6h5kOHLx8yFqdo4CkTFZYTV42j0PLAlf1cQW5Xp4mDHEKyvX1H3py08OUP9jXI4ozb4ffw+Rri+zE+JLOyZQ==}
     hasBin: true
 
   '@dotenvx/primitives@1.8.1':
@@ -2785,7 +2785,7 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  '@dotenvx/dotenvx@2.4.1':
+  '@dotenvx/dotenvx@2.6.0':
     dependencies:
       '@dotenvx/primitives': 1.8.1
       '@dotenvx/tooling': 1.0.2
