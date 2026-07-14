@@ -13,6 +13,7 @@ import {
 } from '../../helper/constants.js';
 import { numberWithCommas } from '../../helper/formatters.js';
 import { formatHrDuration } from '../../helper/hrDuration.js';
+import { safeDeferReply } from '../../helper/safeDiscordResponse.js';
 import type { Command, GearCalculations } from '../../types/index.js';
 
 const gearcheck: Command = {
@@ -29,7 +30,7 @@ const gearcheck: Command = {
 
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const startHr = process.hrtime.bigint();
-    await interaction.deferReply();
+    await safeDeferReply(interaction);
 
     const statValue = interaction.options.getNumber('stat');
     const gearLevel = interaction.options.getInteger('level');

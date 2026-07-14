@@ -9,6 +9,7 @@ import {
 
 import { BOT_ICON_URL } from '../../helper/constants.js';
 import { formatHrDuration } from '../../helper/hrDuration.js';
+import { safeInteractionReply } from '../../helper/safeDiscordResponse.js';
 import type { Command, ExtendedClient } from '../../types/index.js';
 
 const help: Command = {
@@ -22,7 +23,7 @@ const help: Command = {
     const commands = (interaction.client as ExtendedClient).commands;
 
     if (!commands || commands.size === 0) {
-      await interaction.reply({
+      await safeInteractionReply(interaction, {
         content: 'No commands are currently available.',
         flags: MessageFlags.Ephemeral,
       });
@@ -32,7 +33,7 @@ const help: Command = {
     const visible = [...commands.values()].filter((cmd) => canSeeCommand(cmd, interaction));
 
     if (visible.length === 0) {
-      await interaction.reply({
+      await safeInteractionReply(interaction, {
         content: 'No commands available for your permissions in this server.',
         flags: MessageFlags.Ephemeral,
       });
@@ -61,7 +62,7 @@ const help: Command = {
       })
       .setTimestamp();
 
-    await interaction.reply({
+    await safeInteractionReply(interaction, {
       embeds: [embed],
       flags: MessageFlags.Ephemeral,
     });

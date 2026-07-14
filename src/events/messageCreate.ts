@@ -6,7 +6,7 @@ import { handleMessageError } from '../helper/errorHandler.js';
 import { formatHrDuration } from '../helper/hrDuration.js';
 import { isDuplicateEventId } from '../helper/idempotencyGuard.js';
 import { buildMopupEmbed } from '../helper/mopup.js';
-import { removeDuplicateRepliesToMessage } from '../helper/replyDuplicateCleanup.js';
+import { safeMessageReply } from '../helper/safeDiscordResponse.js';
 import { logCommandUsage, tryAcquireEventLock } from '../helper/usageTracker.js';
 import type { Event } from '../types/index.js';
 
@@ -83,11 +83,10 @@ const messageCreate: Event = {
 
         if (message.channel.isTextBased()) {
           debugLogger.step('COMMAND', 'Sending mopup embed response');
-          const sent = await message.reply({
+          await safeMessageReply(message, {
             embeds: [buildMopupEmbed(startHr)],
             allowedMentions: { repliedUser: false },
           });
-          await removeDuplicateRepliesToMessage(message, sent);
           debugLogger.step('COMMAND', 'Mopup embed sent successfully');
         } else {
           debugLogger.warn('COMMAND', 'Channel does not support sending messages');

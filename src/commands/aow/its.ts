@@ -9,6 +9,7 @@ import {
 import { BOT_ICON_URL, VALIDATION } from '../../helper/constants.js';
 import { numberWithCommas } from '../../helper/formatters.js';
 import { formatHrDuration } from '../../helper/hrDuration.js';
+import { safeDeferReply, safeInteractionReply } from '../../helper/safeDiscordResponse.js';
 import { getSheetRowsCached } from '../../helper/sheetsCache.js';
 import { TroopRow, type Command, type KillResult, type ExtendedClient } from '../../types/index.js';
 
@@ -42,7 +43,7 @@ const its: Command = {
     const tdr = Math.min(100, Math.max(0, inputTdr ?? 0));
 
     if (!skillLevel || skillLevel < 1 || skillLevel > VALIDATION.MAX_SKILL_LEVEL) {
-      await interaction.reply({
+      await safeInteractionReply(interaction, {
         content: `You entered skill level ${skillLevel}. Was that intended? Because it's not possible, but it would be REALLY nice if it were...`,
         flags: MessageFlags.Ephemeral,
       });
@@ -50,7 +51,7 @@ const its: Command = {
     }
 
     if (!leadership) {
-      await interaction.reply({
+      await safeInteractionReply(interaction, {
         content: 'Missing required parameters',
         flags: MessageFlags.Ephemeral,
       });
@@ -62,14 +63,14 @@ const its: Command = {
       targetTier < VALIDATION.MIN_TIER ||
       targetTier > VALIDATION.MAX_TIER
     ) {
-      await interaction.reply({
+      await safeInteractionReply(interaction, {
         content: `Tier must be between ${VALIDATION.MIN_TIER} and ${VALIDATION.MAX_TIER}.`,
         flags: MessageFlags.Ephemeral,
       });
       return;
     }
 
-    await interaction.deferReply();
+    await safeDeferReply(interaction);
 
     const googleSheets = (interaction.client as ExtendedClient).GoogleSheets;
     if (!googleSheets) {

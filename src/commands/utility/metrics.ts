@@ -9,6 +9,7 @@ import {
 import { BOT_ICON_URL, METRICS_TOP_LIMIT } from '../../helper/constants.js';
 import { numberWithCommas } from '../../helper/formatters.js';
 import { formatHrDuration } from '../../helper/hrDuration.js';
+import { safeDeferReply } from '../../helper/safeDiscordResponse.js';
 import { getMetricsTotals, getTopCommands } from '../../helper/usageTracker.js';
 import type { Command } from '../../types/index.js';
 
@@ -63,7 +64,7 @@ const metrics: Command = {
 
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const startHr = process.hrtime.bigint();
-    await interaction.deferReply();
+    await safeDeferReply(interaction);
 
     const period = resolveMetricsPeriod(interaction.options.getString('period'));
     if (period === null) {

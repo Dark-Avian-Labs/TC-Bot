@@ -10,7 +10,12 @@ import { handleCommandError } from '../helper/errorHandler.js';
 import { formatHrDuration } from '../helper/hrDuration.js';
 import { isDuplicateEventId } from '../helper/idempotencyGuard.js';
 import { commandErrors, commandsCounter, commandsPerSecond } from '../helper/metrics.js';
-import { logCommandUsage } from '../helper/usageTracker.js';
+import {
+  INTERACTION_EXEC_LOCK_TTL_MS,
+  safeInteractionFollowUp,
+  safeInteractionReply,
+} from '../helper/safeDiscordResponse.js';
+import { logCommandUsage, tryAcquireEventLock } from '../helper/usageTracker.js';
 import type { Event, ExtendedClient } from '../types/index.js';
 
 const interactionsCreate: Event = {
@@ -23,6 +28,22 @@ const interactionsCreate: Event = {
         userId: interaction.user?.id,
         guildId: interaction.guildId,
       });
+      return;
+    }
+
+    const interactionLockKey = `interaction:exec:${interaction.id}`;
+    if (!tryAcquireEventLock(interactionLockKey, INTERACTION_EXEC_LOCK_TTL_MS)) {
+      debugLogger.warn(
+        'INTERACTION',
+        'Skipping duplicate interaction execution (cross-process lock)',
+        {
+          interactionId: interaction.id,
+          type: interaction.type,
+          userId: interaction.user?.id,
+          guildId: interaction.guildId,
+          processId: process.pid,
+        },
+      );
       return;
     }
 
@@ -46,7 +67,7 @@ const interactionsCreate: Event = {
           debugLogger.step('INTERACTION', 'Healtroop select menu handled successfully');
         } else {
           debugLogger.warn('INTERACTION', 'Healtroop handleSelect not available');
-          await interaction.reply({
+          await safeInteractionReply(interaction, {
             content: 'Selector not available.',
             flags: MessageFlags.Ephemeral,
           });
@@ -91,9 +112,9 @@ const interactionsCreate: Event = {
         flags: MessageFlags.Ephemeral,
       } as const;
       if (interaction.replied || interaction.deferred) {
-        await interaction.followUp(fallback);
+        await safeInteractionFollowUp(interaction, fallback);
       } else {
-        await interaction.reply(fallback);
+        await safeInteractionReply(interaction, fallback);
       }
       return;
     }

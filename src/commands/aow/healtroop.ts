@@ -19,6 +19,7 @@ import {
 } from '../../helper/constants.js';
 import { numberWithCommas } from '../../helper/formatters.js';
 import { formatHrDuration } from '../../helper/hrDuration.js';
+import { safeDeferReply, safeInteractionReply } from '../../helper/safeDiscordResponse.js';
 import { getSheetRowsCached } from '../../helper/sheetsCache.js';
 import {
   TroopRow,
@@ -70,7 +71,7 @@ const healtroop: Command = {
     const troopType = interaction.options.getString('type');
 
     if (troopTier === null || troopTier < VALIDATION.MIN_TIER || troopTier > VALIDATION.MAX_TIER) {
-      await interaction.reply({
+      await safeInteractionReply(interaction, {
         content: `Tier must be between ${VALIDATION.MIN_TIER} and ${VALIDATION.MAX_TIER}.`,
         flags: MessageFlags.Ephemeral,
       });
@@ -78,14 +79,14 @@ const healtroop: Command = {
     }
 
     if (!troopAmount || !troopType) {
-      await interaction.reply({
+      await safeInteractionReply(interaction, {
         content: 'Missing required parameters',
         flags: MessageFlags.Ephemeral,
       });
       return;
     }
 
-    await interaction.deferReply();
+    await safeDeferReply(interaction);
 
     const googleSheets = (interaction.client as ExtendedClient).GoogleSheets;
     if (!googleSheets) {
@@ -204,7 +205,7 @@ const healtroop: Command = {
       const selectedName = interaction.values?.[0];
 
       if (originalUserId && interaction.user.id !== originalUserId) {
-        await interaction.reply({
+        await safeInteractionReply(interaction, {
           content: 'Only the user who ran the command can make this selection.',
           flags: MessageFlags.Ephemeral,
         });
