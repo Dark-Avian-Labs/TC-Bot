@@ -25,6 +25,7 @@ import { debugLogger } from './helper/debugLogger.js';
 import { stopIdempotencyCleanup } from './helper/idempotencyGuard.js';
 import { isTransientNetworkError } from './helper/logError.js';
 import { calculateMopupTiming, buildMopupAnnouncementEmbed } from './helper/mopup.js';
+import { safeChannelSend } from './helper/safeDiscordResponse.js';
 import { getSheetRowsCached, registerSheetTitle } from './helper/sheetsCache.js';
 import * as usageTracker from './helper/usageTracker.js';
 import type { Command, ExtendedClient, GoogleSheetsClient } from './types/index.js';
@@ -120,6 +121,7 @@ const MOPUP_SCHEDULER_STATE_KEY = 'mopup:scheduler';
 const MOPUP_CHANNEL_STATE_PREFIX = 'mopup:channel:';
 const MOPUP_LOCK_WARN_AFTER_MS = 30 * 1000;
 const MOPUP_LOCK_WARN_EVERY_MS = 60 * 1000;
+const MOPUP_ANNOUNCE_LOCK_TTL_MS = 24 * 60 * 60 * 1000;
 
 (async function initializeBot(): Promise<void> {
   debugLogger.boot('Starting bot initialization');
@@ -519,8 +521,38 @@ async function tryAnnounceMopupStatusChange(
     return;
   }
 
+  if (!channel.isTextBased()) {
+    debugLogger.warn('MOPUP', 'Skipping mopup announcement: channel is not text-based', {
+      channelId: process.env.CHANNEL_ID3,
+    });
+    return;
+  }
+
+  const announceLockKey = `mopup:announce:${process.env.CHANNEL_ID3}:${mopupInfo.status}:${mopupInfo.timestamp}`;
+  if (!usageTracker.tryAcquireEventLock(announceLockKey, MOPUP_ANNOUNCE_LOCK_TTL_MS)) {
+    debugLogger.warn('MOPUP', 'Skipping duplicate mopup announcement (cross-process lock)', {
+      announceLockKey,
+      previousStatus: lastStatus,
+      currentStatus: mopupInfo.status,
+      processId: process.pid,
+    });
+    return;
+  }
+
   const startHr = process.hrtime.bigint();
-  await channel.send({ embeds: [buildMopupAnnouncementEmbed(startHr, mopupInfo)] });
+  const announcementEmbed = buildMopupAnnouncementEmbed(startHr, mopupInfo);
+  const announceScope = { type: 'announce' as const, key: announceLockKey };
+
+  const sent = await safeChannelSend(channel, { embeds: [announcementEmbed] }, announceScope);
+  if (!sent) {
+    debugLogger.info('MOPUP', 'Skipping mopup announcement: matching message already posted', {
+      channelId: channel.id,
+      currentStatus: mopupInfo.status,
+    });
+    usageTracker.setMopupLastKnownStatus(mopupInfo.status);
+    return;
+  }
+
   if (!usageTracker.setMopupLastKnownStatus(mopupInfo.status)) {
     debugLogger.error('MOPUP', 'Posted mopup announcement but failed to persist status', {
       status: mopupInfo.status,

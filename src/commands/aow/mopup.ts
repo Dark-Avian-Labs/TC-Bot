@@ -1,6 +1,7 @@
 import { SlashCommandBuilder, type ChatInputCommandInteraction } from 'discord.js';
 
 import { buildMopupEmbed } from '../../helper/mopup.js';
+import { safeInteractionReply } from '../../helper/safeDiscordResponse.js';
 import type { Command } from '../../types/index.js';
 
 const mopup: Command = {
@@ -9,7 +10,7 @@ const mopup: Command = {
 
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const startHr = process.hrtime.bigint();
-    await interaction.reply({ embeds: [buildMopupEmbed(startHr)] });
+    await safeInteractionReply(interaction, { embeds: [buildMopupEmbed(startHr)] });
   },
 };
 

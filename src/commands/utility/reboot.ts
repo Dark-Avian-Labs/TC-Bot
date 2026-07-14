@@ -5,6 +5,7 @@ import {
   type ChatInputCommandInteraction,
 } from 'discord.js';
 
+import { safeInteractionReply } from '../../helper/safeDiscordResponse.js';
 import type { Command } from '../../types/index.js';
 
 const reboot: Command = {
@@ -21,7 +22,7 @@ const reboot: Command = {
 
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     if (!interaction.guild) {
-      await interaction.reply({
+      await safeInteractionReply(interaction, {
         content: 'This command can only be used in a server.',
         flags: MessageFlags.Ephemeral,
       });
@@ -29,7 +30,7 @@ const reboot: Command = {
     }
 
     if (interaction.guildId !== process.env.GUILD_ID) {
-      await interaction.reply({
+      await safeInteractionReply(interaction, {
         content: 'Permission denied. Command used on wrong server.',
         flags: MessageFlags.Ephemeral,
       });
@@ -38,14 +39,14 @@ const reboot: Command = {
 
     const confirm = interaction.options.getBoolean('confirm');
     if (!confirm) {
-      await interaction.reply({
+      await safeInteractionReply(interaction, {
         content: 'Reboot cancelled. You must confirm by setting `confirm:true`.',
         flags: MessageFlags.Ephemeral,
       });
       return;
     }
 
-    await interaction.reply({
+    await safeInteractionReply(interaction, {
       content: 'Bot is shutting down...',
       flags: MessageFlags.Ephemeral,
     });
