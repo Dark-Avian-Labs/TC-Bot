@@ -43,6 +43,14 @@ function interactionScope(interaction: RepliableInteraction): DedupeScope {
   return { type: 'interaction', interactionId: interaction.id };
 }
 
+function resolveInteractionMessage(
+  response: Message | { resource?: { message?: Message | null } | null },
+): Message | undefined {
+  if (response instanceof Message) return response;
+  const sent = response.resource?.message;
+  return sent instanceof Message ? sent : undefined;
+}
+
 export async function safeInteractionReply(
   interaction: RepliableInteraction,
   options: InteractionReplyOptions | string,
@@ -53,27 +61,27 @@ export async function safeInteractionReply(
     return undefined;
   }
 
-  const sent = await interaction.reply({ ...normalized, fetchReply: true });
-  if (sent instanceof Message) {
+  const response = await interaction.reply({ ...normalized, withResponse: true });
+  const sent = resolveInteractionMessage(response);
+  if (sent) {
     await dedupeBotResponse(sent, interactionScope(interaction));
   }
-  return sent instanceof Message ? sent : undefined;
+  return sent;
 }
 
 export async function safeDeferReply(
   interaction: ChatInputCommandInteraction,
   options?: Parameters<ChatInputCommandInteraction['deferReply']>[0],
 ): Promise<void> {
-  await interaction.deferReply(options);
-  if (options && isEphemeral(options.flags)) return;
+  if (options && isEphemeral(options.flags)) {
+    await interaction.deferReply(options);
+    return;
+  }
 
-  try {
-    const sent = await interaction.fetchReply();
-    if (sent instanceof Message) {
-      await dedupeBotResponse(sent, interactionScope(interaction));
-    }
-  } catch {
-    // fetchReply can fail for ephemeral or unsupported channel types
+  const response = await interaction.deferReply({ ...options, withResponse: true });
+  const sent = resolveInteractionMessage(response);
+  if (sent) {
+    await dedupeBotResponse(sent, interactionScope(interaction));
   }
 }
 
@@ -87,11 +95,12 @@ export async function safeInteractionFollowUp(
     return undefined;
   }
 
-  const sent = await interaction.followUp({ ...normalized, fetchReply: true });
-  if (sent instanceof Message) {
+  const response = await interaction.followUp({ ...normalized, withResponse: true });
+  const sent = resolveInteractionMessage(response);
+  if (sent) {
     await dedupeBotResponse(sent, interactionScope(interaction));
   }
-  return sent instanceof Message ? sent : undefined;
+  return sent;
 }
 
 export async function safeMessageReply(
