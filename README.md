@@ -115,7 +115,6 @@ Unless you have a copy of the Theorycrafters Google Sheet and valid API credenti
 | `TOKEN`                          | Discord Bot Token                                   |
 | `CLIENT_ID`                      | Discord Application Client ID                       |
 | `GUILD_ID`                       | Discord Server ID                                   |
-| `OCR_SPACEKEY`                   | OCR.space API Key                                   |
 | `CHANNEL_ID1`                    | Mopup Status Channel ID                             |
 | `CHANNEL_ID2`                    | Mopup Timer Channel ID                              |
 | `ENABLE_LEGACY_MESSAGE_COMMANDS` | If the bot should react to "!tcmu" commands         |

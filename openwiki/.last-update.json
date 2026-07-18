@@ -1,6 +1,6 @@
 {
-  "updatedAt": "2026-07-08T15:26:24.215Z",
-  "command": "init",
-  "gitHead": "876136ebd1f80d1153c9ac41d8ae991ed9d0d497",
-  "model": "deepseek/deepseek-v3.2"
+  "updatedAt": "2026-07-18T22:57:00Z",
+  "command": "update",
+  "gitHead": "729b3a30e75a7afa7ec22f6cb37e9c5a711bf0db",
+  "model": "Cursor Grok 4.5"
 }
