@@ -121,3 +121,4 @@ Historical entries through the current release were **backfilled from merged PR 
 - **v7.9.1** `chore` [#130](https://github.com/Dark-Avian-Labs/TC-Bot/pull/130): update dependencies
 - **v7.10.0** `feat` [#133](https://github.com/Dark-Avian-Labs/TC-Bot/pull/133): duplicate message handling
 - **v7.10.1** `fix` [#134](https://github.com/Dark-Avian-Labs/TC-Bot/pull/134): deprecated fetchReply
+- **v7.10.2** `chore` [#136](https://github.com/Dark-Avian-Labs/TC-Bot/pull/136): dependabot/github_actions/actions/setup node 7
