@@ -1,3 +1,7 @@
+## Org standards
+
+Shared Dark Avian Labs engineering conventions (README shape, CI/PR runners, validate, release tracks, OpenWiki) live in AppBase `docs/org-standards/`. Prefer those docs when aligning workflows or quality gates.
+
 ## OpenWiki
 
 This repository has documentation located in the /openwiki directory.

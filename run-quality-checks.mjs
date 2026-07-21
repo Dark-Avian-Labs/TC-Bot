@@ -1,5 +1,13 @@
 import { spawnSync } from 'node:child_process';
 
+const preflight = spawnSync('node', ['scripts/runtime-preflight.mjs'], {
+  stdio: 'inherit',
+  shell: false,
+});
+if (preflight.status !== 0) {
+  process.exit(preflight.status ?? 1);
+}
+
 const steps = [
   { name: 'Formatting', command: 'pnpm run check-format' },
   { name: 'Lint', command: 'pnpm run lint' },

@@ -1,14 +1,14 @@
 # Discord Bot for Ark of War
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
-![Static Badge](https://img.shields.io/badge/Node.js-26-red?style=for-the-badge)
-![Static Badge](https://img.shields.io/badge/TypeScript-5.9-blue?style=for-the-badge)
-![NPM Version](https://img.shields.io/npm/v/discord.js?style=for-the-badge&label=Discord.js&color=blue)
-![NPM Version](https://img.shields.io/npm/v/%40dotenvx%2Fdotenvx?style=for-the-badge&label=.envx&color=green)
-![NPM Version](https://img.shields.io/npm/v/%40googleapis%2Fsheets?style=for-the-badge&label=%40googleapis%2Fsheets&color=orange)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![CI](https://github.com/ishark5060/tc-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/ishark5060/tc-bot/actions/workflows/ci.yml)
+[![PR](https://github.com/ishark5060/tc-bot/actions/workflows/pr.yml/badge.svg)](https://github.com/ishark5060/tc-bot/actions/workflows/pr.yml)
+![Node](https://img.shields.io/badge/Node-%3E%3D26-339933?logo=node.js&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-6.x-3178C6?logo=typescript&logoColor=white)
+[![Cursor](https://img.shields.io/badge/Cursor-IDE-141414?logo=cursor&logoColor=white)](https://cursor.com)
 
-TC-Bot is a pretty simple Discord bot based on the `Discord.js` framework and is built around the game [Ark of War](https://www.7piratesgames.com/ark.html).
-It provides the users of the [Diplomacy of War Discord Server](https://discord.gg/YMAhCNjkgp) several commands to calculate stats in the game.
+TC-Bot is a Discord bot based on Discord.js for [Ark of War](https://www.7piratesgames.com/ark.html).
+It provides the [Diplomacy of War Discord Server](https://discord.gg/YMAhCNjkgp) with commands to calculate stats in the game.
 
 ## About
 
@@ -30,13 +30,11 @@ TypeScript is used in strict mode by now, tests are automated via Vitest and the
 ## Requirements
 
 - Node.js 26+
-- pnpm 10+
+- pnpm 11+
 
-## Setup
+## Quick start
 
-1. Install Node and pnpm:
-
-Use whatever installation method you prefer for your system.
+1. Install Node and pnpm using your preferred method for your OS.
 
 2. Install dependencies:
 
@@ -48,7 +46,6 @@ Use whatever installation method you prefer for your system.
 
    ```bash
    cp .env.example .env
-   nano .env
    ```
 
 4. Build and run:
@@ -58,15 +55,22 @@ Use whatever installation method you prefer for your system.
    pnpm start
    ```
 
-or start it with PM2 ecosystem file for better control
+   Or start with PM2:
+
+   ```bash
+   pm2 start ecosystem.config.cjs
+   ```
+
+5. Deploy slash commands:
+
+   ```bash
+   pnpm run deploy
+   ```
+
+## Examples
 
 ```bash
-pm2 start ecosystem.config.cjs
-```
-
-5. Deploy Slash commands
-
-```bash
+pnpm run validate
 pnpm run deploy
 ```
 
@@ -108,7 +112,7 @@ For Google Sheets access, provide `client_secret.json` in project root.
 
 Unless you have a copy of the Theorycrafters Google Sheet and valid API credentials, Healing/ITS features will not work.
 
-## Environment Variables
+## Environment
 
 | Variable                         | Description                                         |
 | -------------------------------- | --------------------------------------------------- |
@@ -133,14 +137,18 @@ Unless you have a copy of the Theorycrafters Google Sheet and valid API credenti
 
 ## Scripts
 
-| Script              | Description                            |
-| ------------------- | -------------------------------------- |
-| `pnpm run build`    | Compile TypeScript to `dist/`.         |
-| `pnpm start`        | Run production server from `dist/`.    |
-| `pnpm run deploy`   | Register slash commands with Discord.  |
-| `pnpm run lint`     | Run OxLint.                            |
-| `pnpm run format`   | Run Oxfmt formatting.                  |
-| `pnpm run validate` | Check format, lint, typesafety, tests. |
+| Script              | Description                                     |
+| ------------------- | ----------------------------------------------- |
+| `pnpm run validate` | Preflight + format, lint, typecheck, and tests. |
+| `pnpm run build`    | Compile TypeScript to `dist/`.                  |
+| `pnpm start`        | Run production server from `dist/`.             |
+| `pnpm run deploy`   | Register slash commands with Discord.           |
+| `pnpm run lint`     | Run OxLint.                                     |
+| `pnpm run format`   | Run Oxfmt formatting.                           |
+
+## Development
+
+Agent-oriented docs: [openwiki/quickstart.md](openwiki/quickstart.md). Org standards: AppBase `docs/org-standards/`.
 
 ## License
 
