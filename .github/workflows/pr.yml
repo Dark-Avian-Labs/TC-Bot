@@ -16,8 +16,8 @@ concurrency:
 
 jobs:
   validate:
-    runs-on: blacksmith-4vcpu-ubuntu-2404
-    timeout-minutes: 10
+    runs-on: blacksmith-8vcpu-ubuntu-2404
+    timeout-minutes: 15
 
     steps:
       - name: Checkout code
@@ -35,17 +35,8 @@ jobs:
       - name: Install dependencies (fresh lockfile)
         uses: ./.github/actions/pnpm-install-fresh
 
-      - name: Check formatting
-        run: pnpm run check-format
-
-      - name: Check linting
-        run: pnpm run lint
-
-      - name: Check types
-        run: pnpm run typecheck
+      - name: Run quality checks
+        run: pnpm run validate
 
       - name: Build project
         run: pnpm run build
-
-      - name: Run tests
-        run: pnpm run test

@@ -30,7 +30,7 @@ concurrency:
 jobs:
   deployment-check:
     if: ${{ !contains(github.event.head_commit.message, 'chore(release)') && !contains(github.event.head_commit.message, 'build(release)') }}
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     timeout-minutes: 10
 
     outputs:
@@ -96,7 +96,7 @@ jobs:
           echo "Reason: Only devDependencies or lockfile changed"
 
   version:
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: blacksmith-8vcpu-ubuntu-2404
     timeout-minutes: 10
 
     needs: [deployment-check]
@@ -141,7 +141,7 @@ jobs:
           echo "sha=$(git rev-parse origin/main)" >> "$GITHUB_OUTPUT"
 
   validate:
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: blacksmith-8vcpu-ubuntu-2404
     timeout-minutes: 10
 
     needs: [deployment-check, version]
@@ -168,25 +168,16 @@ jobs:
       - name: Install dependencies (fresh lockfile)
         uses: ./.github/actions/pnpm-install-fresh
 
-      - name: Check formatting
-        run: pnpm run check-format
-
-      - name: Check linting
-        run: pnpm run lint
-
-      - name: Check types
-        run: pnpm run typecheck
-
-      - name: Run tests
+      - name: Run quality checks
         run: |
           if [ -z "$DOTENV_PRIVATE_KEY_PRODUCTION" ]; then
             echo "ERROR: DOTENV_PRIVATE_KEY_PRODUCTION secret is missing or empty."
             exit 1
           fi
-          pnpm exec dotenvx run --strict -f .env.production -- pnpm run test
+          pnpm exec dotenvx run --strict -f .env.production -- pnpm run validate
 
   build-and-deploy:
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: blacksmith-8vcpu-ubuntu-2404
     timeout-minutes: 10
 
     needs: [deployment-check, version, validate]
@@ -364,7 +355,7 @@ jobs:
         run: rm -f ~/.ssh/deploy_key
 
   discord-status:
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     timeout-minutes: 10
     needs: [deployment-check, validate, build-and-deploy, version]
     if: ${{ always() && github.ref == 'refs/heads/main' }}
