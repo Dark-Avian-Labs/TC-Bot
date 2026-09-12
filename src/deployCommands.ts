@@ -6,22 +6,7 @@ import { REST, Routes } from 'discord.js';
 import { discoverCommandFiles } from './helper/commandDiscovery.js';
 import type { Command } from './types/index.js';
 
-const DEPLOY_ENV_FILES = {
-  prod: '.env.production',
-  dev: '.env.development',
-} as const;
-
-const args = process.argv
-  .slice(2)
-  .filter((arg) => arg !== '--' && !arg.endsWith('.ts') && !arg.endsWith('.js'));
-const target = args[0];
-if (args.length !== 1 || (target !== 'prod' && target !== 'dev')) {
-  console.error('[DEPLOY] Usage: pnpm run deploy prod|dev');
-  process.exit(1);
-}
-
-const envFile = DEPLOY_ENV_FILES[target];
-process.env.ENV_FILE = envFile;
+process.env.ENV_FILE = '.env.production';
 await import('./env/loadEnv.js');
 
 const __filename = fileURLToPath(import.meta.url);
@@ -85,6 +70,11 @@ async function deployNewCommands(commands: unknown[]): Promise<void> {
     throw new Error('Missing CLIENT_ID in environment variables');
   }
 
+  const guildId = process.env.GUILD_ID;
+  if (!guildId) {
+    throw new Error('Missing GUILD_ID in environment variables');
+  }
+
   const tokenAppId = applicationIdFromBotToken(TOKEN);
   if (tokenAppId && tokenAppId !== clientId) {
     throw new Error(
@@ -92,25 +82,18 @@ async function deployNewCommands(commands: unknown[]): Promise<void> {
     );
   }
 
-  const guildId = process.env.GUILD_ID;
-  if (guildId) {
-    console.log(`[DEPLOY] Target: ${target} guild deployment (${guildId}) via ${envFile}.`);
-  } else {
-    console.log(`[DEPLOY] Target: ${target} global deployment via ${envFile}.`);
-  }
-
+  console.log(`[DEPLOY] Target: global deployment via .env.production.`);
+  console.log(`[DEPLOY] Guild commands will be cleared (${guildId}).`);
   console.log('[DEPLOY] Starting in 3 seconds... (Ctrl+C to cancel)');
   await new Promise((resolve) => setTimeout(resolve, 3000));
-  if (guildId) {
-    const guildData = (await rest.put(Routes.applicationGuildCommands(clientId, guildId), {
-      body: commands,
-    })) as unknown[];
-    console.log(`[DEPLOY] Successfully deployed ${guildData.length} guild commands.`);
-    return;
-  }
 
   const globalData = (await rest.put(Routes.applicationCommands(clientId), {
     body: commands,
   })) as unknown[];
   console.log(`[DEPLOY] Successfully deployed ${globalData.length} global commands.`);
+
+  await rest.put(Routes.applicationGuildCommands(clientId, guildId), {
+    body: [],
+  });
+  console.log(`[DEPLOY] Cleared guild commands (${guildId}).`);
 }
