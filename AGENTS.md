@@ -8,7 +8,7 @@ See `README.md` for scripts, env, and Google credential shape.
 
 ## Runtime
 
-`loadEnv` picks `.env.production` only when `NODE_ENV=production`, else `.env.development`. `pnpm start` does **not** set `NODE_ENV=production`; PM2 does. Slash register (`pnpm run deploy`) is not part of bot boot: guild commands if `GUILD_ID` is set, else global. Runtime loads `dist/commands/**/*.js`; deploy discovers `src/**/*.ts`. Keep both paths working.
+`loadEnv` picks `.env.production` only when `NODE_ENV=production`, else `.env.development`. `pnpm start` does **not** set `NODE_ENV=production`; PM2 does. Slash register (`pnpm run deploy prod|dev`) is not part of bot boot: `prod` loads `.env.production`, `dev` loads `.env.development`, missing arg errors. Guild commands if `GUILD_ID` is set, else global. Runtime loads `dist/commands/**/*.js`; deploy discovers `src/**/*.ts`. Keep both paths working.
 
 Prefer `safe*` reply helpers. Raw `interaction.reply` bypasses public-message fingerprint dedupe. Interaction exec lock TTL is 15 minutes (SQLite, same DB as metrics). `/reboot` needs Administrator in `GUILD_ID` plus `confirm:true`, then `SIGTERM` for PM2.
 

@@ -18,7 +18,7 @@ Source lives at [ishark5060/tc-bot](https://github.com/ishark5060/tc-bot), not t
 ## Gotchas
 
 - Boot **hard-requires** `client_secret.json` in the project root plus `GOOGLE_SPREADSHEET_ID` / `GOOGLE_SHEET_ID`, even for commands that never touch the sheet. Tab identity is the numeric sheet id, not the tab name. Without a copy of the Theorycrafters sheet, healing/iTS will not work.
-- Slash commands are not registered at boot. Run `pnpm run deploy` after a command change. Guild commands if `GUILD_ID` is set, otherwise global.
+- Slash commands are not registered at boot. Run `pnpm run deploy prod` or `pnpm run deploy dev` after a command change. Missing target is an error. Guild commands if `GUILD_ID` is set, otherwise global.
 - `pnpm start` does **not** set `NODE_ENV=production`; PM2 does (`ecosystem.config.cjs`). Runtime loads `dist/commands/**/*.js`; deploy discovers `src/**/*.ts`. Keep both paths working.
 - Mopup timing uses the **host timezone**. Even day: 26h–34h offsets; odd day: 8h–24h. Legacy `!tcmu` only when `ENABLE_LEGACY_MESSAGE_COMMANDS` is on and the channel matches `MESSAGE_COMMAND_CHANNEL_ID`.
 - After changing Node versions on Windows, `pnpm rebuild better-sqlite3`.
