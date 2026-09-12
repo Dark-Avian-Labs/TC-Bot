@@ -1,5 +1,3 @@
-import './env/loadEnv.js';
-
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -8,16 +6,43 @@ import { REST, Routes } from 'discord.js';
 import { discoverCommandFiles } from './helper/commandDiscovery.js';
 import type { Command } from './types/index.js';
 
+const DEPLOY_ENV_FILES = {
+  prod: '.env.production',
+  dev: '.env.development',
+} as const;
+
+const args = process.argv
+  .slice(2)
+  .filter((arg) => arg !== '--' && !arg.endsWith('.ts') && !arg.endsWith('.js'));
+const target = args[0];
+if (args.length !== 1 || (target !== 'prod' && target !== 'dev')) {
+  console.error('[DEPLOY] Usage: pnpm run deploy prod|dev');
+  process.exit(1);
+}
+
+const envFile = DEPLOY_ENV_FILES[target];
+process.env.ENV_FILE = envFile;
+await import('./env/loadEnv.js');
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const TOKEN = process.env.TOKEN;
-if (!TOKEN) {
+const token = process.env.TOKEN;
+if (!token) {
   console.error('[DEPLOY] Missing TOKEN in environment variables.');
   throw new Error('Missing TOKEN in environment variables');
 }
+const TOKEN = token;
 
 const rest = new REST({ version: '10' }).setToken(TOKEN);
+
+function applicationIdFromBotToken(token: string): string | null {
+  const part = token.split('.')[0];
+  if (!part) return null;
+  const padded = part + '='.repeat((4 - (part.length % 4)) % 4);
+  const id = Buffer.from(padded, 'base64').toString('utf8');
+  return /^\d{17,20}$/.test(id) ? id : null;
+}
 
 (async function deployCommands(): Promise<void> {
   try {
@@ -60,11 +85,18 @@ async function deployNewCommands(commands: unknown[]): Promise<void> {
     throw new Error('Missing CLIENT_ID in environment variables');
   }
 
+  const tokenAppId = applicationIdFromBotToken(TOKEN);
+  if (tokenAppId && tokenAppId !== clientId) {
+    throw new Error(
+      `TOKEN belongs to application ${tokenAppId}, but CLIENT_ID is ${clientId}. They must be the same Discord app.`,
+    );
+  }
+
   const guildId = process.env.GUILD_ID;
   if (guildId) {
-    console.log(`[DEPLOY] Target: guild deployment (${guildId}).`);
+    console.log(`[DEPLOY] Target: ${target} guild deployment (${guildId}) via ${envFile}.`);
   } else {
-    console.log('[DEPLOY] Target: global deployment.');
+    console.log(`[DEPLOY] Target: ${target} global deployment via ${envFile}.`);
   }
 
   console.log('[DEPLOY] Starting in 3 seconds... (Ctrl+C to cancel)');
