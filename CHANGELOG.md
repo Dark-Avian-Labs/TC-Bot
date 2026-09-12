@@ -142,3 +142,4 @@ Historical entries through the current release were **backfilled from merged PR 
 - **v7.11.4** `chore` [#166](https://github.com/Dark-Avian-Labs/TC-Bot/pull/166): ci/pnpm 12 setup
 - **v7.11.5** `chore` [#167](https://github.com/Dark-Avian-Labs/TC-Bot/pull/167): fix/undici discord headers
 - **v7.11.6** `chore` [#170](https://github.com/Dark-Avian-Labs/TC-Bot/pull/170): ci/scheduled dependency audit
+- **v7.11.7** `fix(deploy)` [#173](https://github.com/Dark-Avian-Labs/TC-Bot/pull/173): require an explicit prod or dev target
