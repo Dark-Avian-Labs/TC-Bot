@@ -222,7 +222,7 @@ jobs:
             echo "Skipping command deploy: TOKEN or CLIENT_ID secret missing."
             exit 0
           fi
-          pnpm exec dotenvx run --strict -f .env.production -- pnpm run deploy prod
+          pnpm exec dotenvx run --strict -f .env.production -- pnpm run deploy
 
       - name: List built files (debug)
         run: ls -la dist/
