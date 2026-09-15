@@ -144,3 +144,4 @@ Historical entries through the current release were **backfilled from merged PR 
 - **v7.11.6** `chore` [#170](https://github.com/Dark-Avian-Labs/TC-Bot/pull/170): ci/scheduled dependency audit
 - **v7.11.7** `fix(deploy)` [#173](https://github.com/Dark-Avian-Labs/TC-Bot/pull/173): require an explicit prod or dev target
 - **v7.11.8** `fix(deploy)` [#174](https://github.com/Dark-Avian-Labs/TC-Bot/pull/174): always register globally and clear guild commands
+- **v7.11.9** `chore` [#176](https://github.com/Dark-Avian-Labs/TC-Bot/pull/176): chore/deps
