@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@dotenvx/dotenvx": "^2.24.1",
-    "@googleapis/sheets": "^17.0.0",
+    "@googleapis/sheets": "^18.0.0",
     "@pm2/io": "^6.1.0",
     "better-sqlite3": "^13.0.3",
     "discord.js": "^14.27.0",

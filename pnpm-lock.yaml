@@ -175,8 +175,8 @@ importers:
         specifier: ^2.24.1
         version: 2.24.1
       '@googleapis/sheets':
-        specifier: ^17.0.0
-        version: 17.0.0(supports-color@7.2.0)
+        specifier: ^18.0.0
+        version: 18.0.0(supports-color@7.2.0)
       '@pm2/io':
         specifier: ^6.1.0
         version: 6.1.0(supports-color@7.2.0)
@@ -473,8 +473,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@googleapis/sheets@17.0.0':
-    resolution: {integrity: sha512-0XvHbv14k41joeRF1NAAYbX7/GnHfL+FOWdn+711j4IRzByqDxA3x7U2LCJi5WjbQDBlLlAyOEgAf/uDcIsbSw==}
+  '@googleapis/sheets@18.0.0':
+    resolution: {integrity: sha512-eTImgWys+sdWu9ouENthzqGHGpw4LUD7k5Qd4/VGmxT+s/x2JFJCcYW8HqCS6BihpVGqA+xYGiopmthgxZoBGg==}
     engines: {node: '>=22.0.0'}
 
   '@jridgewell/resolve-uri@3.1.2':
@@ -2960,7 +2960,7 @@ snapshots:
   '@esbuild/win32-x64@0.28.2':
     optional: true
 
-  '@googleapis/sheets@17.0.0(supports-color@7.2.0)':
+  '@googleapis/sheets@18.0.0(supports-color@7.2.0)':
     dependencies:
       googleapis-common: 9.0.4(supports-color@7.2.0)
     transitivePeerDependencies:
