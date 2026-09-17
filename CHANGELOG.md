@@ -145,3 +145,4 @@ Historical entries through the current release were **backfilled from merged PR 
 - **v7.11.7** `fix(deploy)` [#173](https://github.com/Dark-Avian-Labs/TC-Bot/pull/173): require an explicit prod or dev target
 - **v7.11.8** `fix(deploy)` [#174](https://github.com/Dark-Avian-Labs/TC-Bot/pull/174): always register globally and clear guild commands
 - **v7.11.9** `chore` [#176](https://github.com/Dark-Avian-Labs/TC-Bot/pull/176): chore/deps
+- **v7.11.10** `chore(deps)` [#179](https://github.com/Dark-Avian-Labs/TC-Bot/pull/179): bump @dotenvx/dotenvx in the production-dependencies group
