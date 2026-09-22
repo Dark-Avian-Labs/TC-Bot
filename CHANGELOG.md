@@ -149,3 +149,4 @@ Historical entries through the current release were **backfilled from merged PR 
 - **v7.11.11** `chore(deps)` [#181](https://github.com/Dark-Avian-Labs/TC-Bot/pull/181): bump the production-dependencies group with 2 updates
 - **v7.11.12** `chore` [#185](https://github.com/Dark-Avian-Labs/TC-Bot/pull/185): chore/deps latest
 - **v7.12.0** `chore` [#186](https://github.com/Dark-Avian-Labs/TC-Bot/pull/186): feat/sentinel agent
+- **v7.12.1** `chore` [#187](https://github.com/Dark-Avian-Labs/TC-Bot/pull/187): fix/sentinel ingest token
