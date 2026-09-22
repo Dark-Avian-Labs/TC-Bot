@@ -28,6 +28,7 @@ import { calculateMopupTiming, buildMopupAnnouncementEmbed } from './helper/mopu
 import { safeChannelSend } from './helper/safeDiscordResponse.js';
 import { getSheetRowsCached, registerSheetTitle } from './helper/sheetsCache.js';
 import * as usageTracker from './helper/usageTracker.js';
+import { createAppSentinelAgent } from './sentinelAgent.js';
 import type { Command, ExtendedClient, GoogleSheetsClient } from './types/index.js';
 
 declare module 'discord.js' {
@@ -43,6 +44,13 @@ interface ServiceAccountCredentials {
 }
 
 io.init();
+
+const sentinelAgent = createAppSentinelAgent({
+  appId: 'tc-bot',
+  displayName: 'TC-Bot',
+  nodeEnv: process.env.NODE_ENV ?? 'development',
+});
+sentinelAgent?.start();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -96,6 +104,7 @@ process.on('unhandledRejection', (reason, promise) => {
     promise: String(promise),
   });
   console.error('[PROCESS] Unhandled rejection:', reason);
+  sentinelAgent?.noteCrash(reason);
 });
 
 process.on('uncaughtException', (error) => {
@@ -103,6 +112,7 @@ process.on('uncaughtException', (error) => {
     error,
   });
   console.error('[PROCESS] Uncaught exception:', error);
+  sentinelAgent?.noteCrash(error);
   const forceExitTimeout = setTimeout(() => {
     console.error('[PROCESS] Forced exit after uncaught exception');
     // eslint-disable-next-line n/no-process-exit -- Required for undefined state recovery
@@ -206,12 +216,17 @@ async function gracefulShutdown(): Promise<void> {
     if (process.exitCode === undefined) {
       process.exitCode = 0;
     }
+    if (process.exitCode === 0) sentinelAgent?.noteGracefulExit();
+    else sentinelAgent?.noteCrash(new Error(`shutdown exit ${process.exitCode}`));
+    sentinelAgent?.stop();
   } catch (error) {
     debugLogger.error('SHUTDOWN', 'Error during shutdown', {
       error: error as Error,
     });
     console.error('[SHUTDOWN] Error during shutdown:', error);
     process.exitCode = 1;
+    sentinelAgent?.noteCrash(error);
+    sentinelAgent?.stop();
   }
 }
 
