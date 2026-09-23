@@ -175,8 +175,8 @@ importers:
         specifier: https://github.com/Dark-Avian-Labs/Sentinel/releases/download/agent-v0.1.0/dark-avian-labs-sentinel-agent-0.1.0.tgz
         version: https://github.com/Dark-Avian-Labs/Sentinel/releases/download/agent-v0.1.0/dark-avian-labs-sentinel-agent-0.1.0.tgz(express@5.2.1(supports-color@7.2.0))
       '@dotenvx/dotenvx':
-        specifier: ^2.28.2
-        version: 2.28.2
+        specifier: ^2.29.0
+        version: 2.29.0
       '@googleapis/sheets':
         specifier: ^18.0.0
         version: 18.0.0(supports-color@7.2.0)
@@ -317,8 +317,8 @@ packages:
     resolution: {integrity: sha512-wPlQDxEmlDg5IxhJPuxXr3Vy9AjYq5xCvFWGJyD7w7Np8ZGu+Mc+97LCoEc/+AYCo2IDpKioiH0/c/mj5ZR9Uw==}
     engines: {node: '>=16.11.0'}
 
-  '@dotenvx/dotenvx@2.28.2':
-    resolution: {integrity: sha512-8UZfVEj4rrYQcaq/3Ox7te1qC1znOUOavv6F0BQiGhLLjqaD4xDQ4j3ddla/afC5ukBrnWx3c4RPsh6i1SQUSw==}
+  '@dotenvx/dotenvx@2.29.0':
+    resolution: {integrity: sha512-D3JRlTMcM9ucQyrd+uhDanGCsWo0BQ3pnICtlivHnbblLtzqnGxB/9I8udRwqh77vpvQXnuesOGqQQtUQMGpKA==}
     hasBin: true
 
   '@dotenvx/primitives@3.0.2':
@@ -3120,7 +3120,7 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  '@dotenvx/dotenvx@2.28.2':
+  '@dotenvx/dotenvx@2.29.0':
     dependencies:
       '@dotenvx/primitives': 3.0.2
       '@dotenvx/tooling': 1.0.3
