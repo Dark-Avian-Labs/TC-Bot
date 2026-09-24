@@ -1,7 +1,9 @@
 import fs from 'node:fs';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 
-import { config as loadEnv } from '@dotenvx/dotenvx';
+const require = createRequire(import.meta.url);
+const { config: loadEnv } = require('@dotenvx/dotenvx') as typeof import('@dotenvx/dotenvx');
 
 function resolveEnvPath(): string {
   const baseDir = path.resolve(process.cwd());
