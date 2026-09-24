@@ -1,7 +1,11 @@
 import fs from 'node:fs';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 
-import { config as loadEnv } from '@dotenvx/dotenvx';
+// dotenvx 2.30 assigns module.exports with a non-shorthand property, so Node
+// no longer synthesizes a named ESM `config` export. Require the CJS entry.
+const require = createRequire(import.meta.url);
+const { config: loadEnv } = require('@dotenvx/dotenvx') as typeof import('@dotenvx/dotenvx');
 
 function resolveEnvPath(): string {
   const baseDir = path.resolve(process.cwd());
