@@ -41,7 +41,7 @@ jobs:
 
     steps:
       - name: Checkout full history
-        uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
+        uses: useblacksmith/checkout@25227e61ff9dafe400e22fa487b673eac4e4409a # v1.8.1
         with:
           fetch-depth: 0
 
@@ -112,7 +112,7 @@ jobs:
 
     steps:
       - name: Checkout full history
-        uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
+        uses: useblacksmith/checkout@25227e61ff9dafe400e22fa487b673eac4e4409a # v1.8.1
         with:
           fetch-depth: 0
           token: ${{ secrets.CI_PAT }}
@@ -150,7 +150,7 @@ jobs:
 
     steps:
       - name: Checkout release target
-        uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
+        uses: useblacksmith/checkout@25227e61ff9dafe400e22fa487b673eac4e4409a # v1.8.1
         with:
           ref: ${{ needs.version.outputs.target_sha }}
 
@@ -178,7 +178,7 @@ jobs:
 
     steps:
       - name: Checkout release target
-        uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
+        uses: useblacksmith/checkout@25227e61ff9dafe400e22fa487b673eac4e4409a # v1.8.1
         with:
           ref: ${{ needs.version.outputs.target_sha }}
 
@@ -350,7 +350,7 @@ jobs:
 
     steps:
       - name: Send Discord status
-        uses: iShark5060/actions-discord-status@v1
+        uses: iShark5060/actions-discord-status@66f6681ff19536b7787feecc4fdc20c506de365b # v1.2.1
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
           job_results: ${{ join(needs.*.result, ',') }}
