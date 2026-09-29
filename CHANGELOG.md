@@ -153,3 +153,4 @@ Historical entries through the current release were **backfilled from merged PR 
 - **v7.12.2** `chore(deps)` [#188](https://github.com/Dark-Avian-Labs/TC-Bot/pull/188): bump @dotenvx/dotenvx in the production-dependencies group
 - **v7.12.3** `chore(deps)` [#190](https://github.com/Dark-Avian-Labs/TC-Bot/pull/190): bump @dotenvx/dotenvx in the production-dependencies group
 - **v7.12.4** `chore` [#191](https://github.com/Dark-Avian-Labs/TC-Bot/pull/191): cursor/fix dotenvx config export 85b3
+- **v7.12.5** `chore(deps)` [#193](https://github.com/Dark-Avian-Labs/TC-Bot/pull/193): bump @dotenvx/dotenvx in the production-dependencies group
