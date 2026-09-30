@@ -207,14 +207,7 @@ jobs:
       - name: Deploy slash commands
         env:
           DOTENV_PRIVATE_KEY_PRODUCTION: ${{ secrets.DOTENV_PRIVATE_KEY_PRODUCTION }}
-          TOKEN: ${{ secrets.TOKEN }}
-          CLIENT_ID: ${{ secrets.CLIENT_ID }}
-        run: |
-          if [ -z "$TOKEN" ] || [ -z "$CLIENT_ID" ]; then
-            echo "Skipping command deploy: TOKEN or CLIENT_ID secret missing."
-            exit 0
-          fi
-          pnpm exec dotenvx run --strict -f .env.production -- pnpm run deploy
+        run: pnpm exec dotenvx run --strict -f .env.production -- pnpm run deploy
 
       - name: List built files (debug)
         run: ls -la dist/
