@@ -1,0 +1,110 @@
+name: Dependency audit
+
+on:
+  schedule:
+    - cron: '21 6 * * 1'
+  pull_request:
+  push:
+    branches: [main]
+    paths:
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - '.forgejo/workflows/security.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: light-node26
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: sh
+
+    steps:
+      - name: Decide whether to audit
+        id: filter
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          node --input-type=module <<'EOF'
+          import { appendFileSync } from 'node:fs';
+
+          const relevant =
+            /(^|\/)(package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml)$|^\.forgejo\/workflows\/security\.yml$/;
+
+          const setSkip = (skip) => {
+            appendFileSync(process.env.GITHUB_OUTPUT, `skip=${skip}\n`);
+          };
+
+          if (process.env.GITHUB_EVENT_NAME !== 'pull_request') {
+            setSkip('false');
+            process.exit(0);
+          }
+
+          const files = [];
+          for (let page = 1; page <= 10; page += 1) {
+            const url = `${process.env.GITHUB_API_URL}/repos/${process.env.GITHUB_REPOSITORY}/pulls/${process.env.PR_NUMBER}/files?limit=50&page=${page}`;
+            const response = await fetch(url, {
+              headers: {
+                Accept: 'application/json',
+                Authorization: `token ${process.env.GITHUB_TOKEN}`,
+              },
+            });
+            if (!response.ok) {
+              console.error(await response.text());
+              process.exit(1);
+            }
+            const batch = await response.json();
+            for (const file of batch) files.push(file.filename);
+            if (batch.length < 50) break;
+          }
+
+          console.log(files.join('\n'));
+          if (files.some((file) => relevant.test(file))) {
+            setSkip('false');
+          } else {
+            console.log('No dependency files changed; skipping pnpm audit');
+            setSkip('true');
+          }
+          EOF
+
+      - name: Install git
+        if: steps.filter.outputs.skip != 'true'
+        run: apk add --no-cache git
+
+      - name: Checkout code
+        if: steps.filter.outputs.skip != 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Enable pnpm
+        if: steps.filter.outputs.skip != 'true'
+        run: npm install -g pnpm@12.6.0
+
+      - name: Audit dependencies
+        if: steps.filter.outputs.skip != 'true'
+        run: pnpm audit --audit-level high
+
+  security:
+    name: security
+    needs: [audit]
+    if: always() && !cancelled()
+    runs-on: light
+    timeout-minutes: 5
+    defaults:
+      run:
+        shell: sh
+
+    steps:
+      - name: Check audit result
+        run: |
+          result="${{ needs.audit.result }}"
+          if [ "$result" = "success" ]; then
+            exit 0
+          fi
+          echo "Audit job result: $result"
+          exit 1
