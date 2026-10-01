@@ -9,10 +9,6 @@
   },
   "license": "MIT",
   "author": "Shark5060",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/ishark5060/tc-bot.git"
-  },
   "type": "module",
   "main": "dist/tc-bot.js",
   "scripts": {
