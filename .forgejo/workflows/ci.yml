@@ -1,12 +1,5 @@
 name: TC-Bot CI/CD
 
-permissions:
-  contents: read
-  pull-requests: read
-
-env:
-  NODE_VERSION: 26
-
 on:
   push:
     branches: [main]
@@ -22,7 +15,7 @@ on:
       - 'vitest.config.ts'
       - 'run-quality-checks.mjs'
       - '.env.production'
-      - '.github/workflows/ci.yml'
+      - '.forgejo/workflows/ci.yml'
       - '.releaserc.json'
   workflow_dispatch:
 
@@ -33,15 +26,17 @@ concurrency:
 jobs:
   deployment-check:
     if: ${{ !contains(github.event.head_commit.message, 'chore(release)') && !contains(github.event.head_commit.message, 'build(release)') }}
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: build-node26
     timeout-minutes: 10
 
     outputs:
       deploy: ${{ steps.decide.outputs.deploy }}
 
     steps:
+      - name: Install host tools
+        run: apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y jq
       - name: Checkout full history
-        uses: useblacksmith/checkout@25227e61ff9dafe400e22fa487b673eac4e4409a # v1.8.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
@@ -99,30 +94,27 @@ jobs:
           echo "Reason: Only devDependencies or lockfile changed"
 
   version:
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: build-node26
     timeout-minutes: 10
 
     needs: [deployment-check]
     if: ${{ needs.deployment-check.outputs.deploy == 'true' && !contains(github.event.head_commit.message, 'chore(release)') && !contains(github.event.head_commit.message, 'build(release)') }}
 
-    permissions:
-      contents: write
     outputs:
       target_sha: ${{ steps.target.outputs.sha }}
 
     steps:
       - name: Checkout full history
-        uses: useblacksmith/checkout@25227e61ff9dafe400e22fa487b673eac4e4409a # v1.8.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           token: ${{ secrets.CI_PAT }}
 
-      - name: Setup pnpm and Node.js
-        uses: pnpm/setup@fbda4c85fc2e1e08721cd8763afea8f48d60f024 # v3.0.0
-        with:
-          runtime: node@${{ env.NODE_VERSION }}
-          cache: true
-          require-lockfile: true
+      - name: Enable pnpm
+        run: npm install -g pnpm@12.6.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Bump version
         run: pnpm exec semantic-release
@@ -139,7 +131,7 @@ jobs:
           echo "sha=$(git rev-parse origin/main)" >> "$GITHUB_OUTPUT"
 
   validate:
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: build-node26
     timeout-minutes: 10
 
     needs: [deployment-check, version]
@@ -150,16 +142,15 @@ jobs:
 
     steps:
       - name: Checkout release target
-        uses: useblacksmith/checkout@25227e61ff9dafe400e22fa487b673eac4e4409a # v1.8.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.version.outputs.target_sha }}
 
-      - name: Setup pnpm and Node.js
-        uses: pnpm/setup@fbda4c85fc2e1e08721cd8763afea8f48d60f024 # v3.0.0
-        with:
-          runtime: node@${{ env.NODE_VERSION }}
-          cache: true
-          require-lockfile: true
+      - name: Enable pnpm
+        run: npm install -g pnpm@12.6.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Run quality checks
         run: |
@@ -170,24 +161,25 @@ jobs:
           pnpm exec dotenvx run --strict -f .env.production -- pnpm run validate
 
   build-and-deploy:
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: build-node26
     timeout-minutes: 10
 
     needs: [deployment-check, version, validate]
     if: needs.deployment-check.outputs.deploy == 'true'
 
     steps:
+      - name: Install host tools
+        run: apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y openssh-client rsync
       - name: Checkout release target
-        uses: useblacksmith/checkout@25227e61ff9dafe400e22fa487b673eac4e4409a # v1.8.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.version.outputs.target_sha }}
 
-      - name: Setup pnpm and Node.js
-        uses: pnpm/setup@fbda4c85fc2e1e08721cd8763afea8f48d60f024 # v3.0.0
-        with:
-          runtime: node@${{ env.NODE_VERSION }}
-          cache: true
-          require-lockfile: true
+      - name: Enable pnpm
+        run: npm install -g pnpm@12.6.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Build native modules
         run: pnpm rebuild better-sqlite3 esbuild
@@ -215,14 +207,7 @@ jobs:
       - name: Deploy slash commands
         env:
           DOTENV_PRIVATE_KEY_PRODUCTION: ${{ secrets.DOTENV_PRIVATE_KEY_PRODUCTION }}
-          TOKEN: ${{ secrets.TOKEN }}
-          CLIENT_ID: ${{ secrets.CLIENT_ID }}
-        run: |
-          if [ -z "$TOKEN" ] || [ -z "$CLIENT_ID" ]; then
-            echo "Skipping command deploy: TOKEN or CLIENT_ID secret missing."
-            exit 0
-          fi
-          pnpm exec dotenvx run --strict -f .env.production -- pnpm run deploy
+        run: pnpm exec dotenvx run --strict -f .env.production -- pnpm run deploy
 
       - name: List built files (debug)
         run: ls -la dist/
@@ -343,7 +328,7 @@ jobs:
         run: rm -f ~/.ssh/deploy_key
 
   discord-status:
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: build-node26
     timeout-minutes: 10
     needs: [deployment-check, validate, build-and-deploy, version]
     if: ${{ always() && github.ref == 'refs/heads/main' }}
