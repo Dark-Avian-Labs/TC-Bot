@@ -9,10 +9,6 @@
   },
   "license": "MIT",
   "author": "Shark5060",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/ishark5060/tc-bot.git"
-  },
   "type": "module",
   "main": "dist/tc-bot.js",
   "scripts": {
@@ -29,7 +25,7 @@
     "typecheck": "tsc -p tsconfig.test.json --noEmit && tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@dark-avian-labs/sentinel-agent": "https://github.com/Dark-Avian-Labs/Sentinel/releases/download/agent-v0.1.0/dark-avian-labs-sentinel-agent-0.1.0.tgz",
+    "@dark-avian-labs/sentinel-agent": "https://git.darkavianlabs.com/Dark-Avian-Labs/Sentinel/releases/download/agent-v0.1.0/dark-avian-labs-sentinel-agent-0.1.0.tgz",
     "@dotenvx/dotenvx": "^2.31.1",
     "@googleapis/sheets": "^18.0.1",
     "@pm2/io": "^6.1.0",
