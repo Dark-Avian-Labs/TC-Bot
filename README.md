@@ -5,24 +5,41 @@
 # TC-Bot
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
-[![CI](https://img.shields.io/github/actions/workflow/status/ishark5060/tc-bot/ci.yml?style=flat-square&label=CI)](https://github.com/ishark5060/tc-bot/actions/workflows/ci.yml)
-[![PR](https://img.shields.io/github/actions/workflow/status/ishark5060/tc-bot/pr.yml?style=flat-square&label=PR)](https://github.com/ishark5060/tc-bot/actions/workflows/pr.yml)
 ![Node](https://img.shields.io/badge/Node-%3E%3D26-339933?logo=node.js&logoColor=white&style=flat-square)
 ![TypeScript](https://img.shields.io/badge/TypeScript-7.x-3178C6?logo=typescript&logoColor=white&style=flat-square)
 [![Cursor](https://img.shields.io/badge/Cursor-IDE-141414?logo=cursor&logoColor=white&style=flat-square)](https://cursor.com)
 
-TC-Bot sits in [Diplomacy of War](https://discord.gg/YMAhCNjkgp) and answers the questions that used to bounce around the theorycrafters' sheet. Healing, gear, iTS. Type a slash command instead of scrolling a tab at 2am.
+TC-Bot sits in [Diplomacy of War](https://discord.gg/YMAhCNjkgp) and answers the Ark of War questions that used to mean opening the theorycrafters' sheet. Healing, gear, damage, iTS. You type a slash command in Discord.
 
-Mopup windows get a channel ping when the window opens. Troop numbers still come from the Google Sheet the officers already keep. This is a Discord bot for [Ark of War](https://www.7piratesgames.com/ark.html), not a second spreadsheet.
+It is for officers and players on that server who want the sheet's numbers without scrolling a tab at 2am.
 
-Source lives at [ishark5060/tc-bot](https://github.com/ishark5060/tc-bot), not the org.
+## Features
 
-## Gotchas
+**Slash commands for the usual checks.** `/healtroop` prices a stack of injured troops. `/gearcheck` projects a stat at a higher upgrade. `/its` checks an iTS setup. `/damage` runs a hit with the bonuses you pass in. `/help` lists what the bot will take.
 
-- Boot hard-requires `client_secret.json` in the project root plus `GOOGLE_SPREADSHEET_ID` / `GOOGLE_SHEET_ID`, even for commands that never touch the sheet. Tab identity is the numeric sheet id, not the tab name.
-- Slash commands are not registered at boot. Run `pnpm run deploy` after a command change. It always uses `.env.production` and registers globally, then clears guild commands for `GUILD_ID`.
-- `pnpm start` does not set `NODE_ENV=production`; PM2 does. Runtime loads `dist/commands/**/*.js`; deploy discovers `src/**/*.ts`.
-- Mopup timing uses the host timezone. Even day: 26h-34h offsets; odd day: 8h-24h. Legacy `!tcmu` only when `ENABLE_LEGACY_MESSAGE_COMMANDS` is on and the channel matches `MESSAGE_COMMAND_CHANNEL_ID`.
+**Mopup, on a clock.** `/mopup` says when the next window opens. When the channels are configured, the bot renames them as the window moves and posts into the announcement channel when it opens. Timing uses the clock of the machine the bot runs on.
+
+**The sheet the officers already keep.** Troop stats and costs are read from that Google Sheet. Change the sheet, and the next command sees it after the cache refreshes. The bot keeps a local metrics database for its own `/metrics` command. Troop numbers still come from the sheet.
+
+## What you should know
+
+There is no website to sign in to. The bot only answers inside the Discord server it was invited to.
+
+Slash commands are registered by a separate deploy step. Restarting the bot does not publish a new command. Mopup timing follows the host timezone, so a box set to the wrong zone will announce the window early or late.
+
+## Self-hosting
+
+Node 26 or newer, and pnpm 12. Copy `.env.example` to `.env.development`. `pnpm start` leaves `NODE_ENV` unset, so it reads that file.
+
+```
+pnpm install
+pnpm run build
+pnpm start
+```
+
+Put `client_secret.json` in the project root. Boot reads it for the Google Sheet even before a command asks for troop numbers. `GOOGLE_SHEET_ID` is the numeric tab id from the sheet URL, not the tab's name.
+
+`pnpm run deploy` always loads `.env.production`, registers slash commands globally, and then clears guild commands for `GUILD_ID`. Run it after a command change. A production process needs `NODE_ENV=production` and that same env file, plus the Discord token and the sheet ids the example lists.
 
 ## License
 
