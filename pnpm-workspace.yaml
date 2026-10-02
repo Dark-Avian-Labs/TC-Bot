@@ -3,6 +3,7 @@ allowBuilds:
   esbuild: true
 
 overrides:
+  undici: '>7.29.1'
   gaxios: ^7.3.1
   google-auth-library: ^11.0.2
   minimatch@>=9: ^10.2.6
