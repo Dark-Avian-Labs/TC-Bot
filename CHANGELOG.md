@@ -156,3 +156,4 @@ Historical entries through the current release were **backfilled from merged PR 
 - **v7.12.5** `chore(deps)` [#193](https://github.com/Dark-Avian-Labs/TC-Bot/pull/193): bump @dotenvx/dotenvx in the production-dependencies group
 - **v7.12.6** `chore`: Merge pull request 'Install the Sentinel agent from Forgejo' (#196) from deps/sentinel-agent-forgejo into main
 - **v7.12.7** `chore`: Merge pull request 'Pin undici past the new advisory' (#199) from chore/undici-advisory into main
+- **v7.12.8** `chore`: Merge pull request 'Keep undici on 7.x so Discord command deploy can finish' (#200) from fix/undici-discord into main
