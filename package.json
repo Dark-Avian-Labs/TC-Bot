@@ -27,7 +27,7 @@
   "dependencies": {
     "@dark-avian-labs/sentinel-agent": "https://git.darkavianlabs.com/Dark-Avian-Labs/Sentinel/releases/download/agent-v0.1.0/dark-avian-labs-sentinel-agent-0.1.0.tgz",
     "@dotenvx/dotenvx": "^2.32.4",
-    "@googleapis/sheets": "^18.0.1",
+    "@googleapis/sheets": "^18.1.0",
     "@pm2/io": "^6.1.0",
     "better-sqlite3": "^13.0.3",
     "discord.js": "^14.27.0",
