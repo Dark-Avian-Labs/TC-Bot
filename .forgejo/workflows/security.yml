@@ -83,7 +83,7 @@ jobs:
 
       - name: Enable pnpm
         if: steps.filter.outputs.skip != 'true'
-        run: npm install -g pnpm@12.6.0
+        run: npm install -g pnpm@$(node -p 'require("./package.json").packageManager.replace(/^pnpm@/, "")')
 
       - name: Audit dependencies
         if: steps.filter.outputs.skip != 'true'
