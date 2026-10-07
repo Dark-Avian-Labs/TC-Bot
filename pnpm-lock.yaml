@@ -176,8 +176,8 @@ importers:
         specifier: https://git.darkavianlabs.com/Dark-Avian-Labs/Sentinel/releases/download/agent-v0.1.0/dark-avian-labs-sentinel-agent-0.1.0.tgz
         version: https://git.darkavianlabs.com/Dark-Avian-Labs/Sentinel/releases/download/agent-v0.1.0/dark-avian-labs-sentinel-agent-0.1.0.tgz(express@5.2.1(supports-color@7.2.0))
       '@dotenvx/dotenvx':
-        specifier: ^2.32.4
-        version: 2.32.4
+        specifier: ^2.33.0
+        version: 2.33.0
       '@googleapis/sheets':
         specifier: ^18.1.0
         version: 18.1.0(supports-color@7.2.0)
@@ -318,12 +318,12 @@ packages:
     resolution: {integrity: sha512-wPlQDxEmlDg5IxhJPuxXr3Vy9AjYq5xCvFWGJyD7w7Np8ZGu+Mc+97LCoEc/+AYCo2IDpKioiH0/c/mj5ZR9Uw==}
     engines: {node: '>=16.11.0'}
 
-  '@dotenvx/dotenvx@2.32.4':
-    resolution: {integrity: sha512-nJJqsTXaY+mEITPpDFxoPVEPPS4mw815BU/YFjzamnp3eIELOR/CzJeOc7Lt9Vv2ZHH3sYDMUlnaN34FClc/zA==}
+  '@dotenvx/dotenvx@2.33.0':
+    resolution: {integrity: sha512-rAtmpABkSB1yfdXqX16Ftb0cF7rQ/n48p0XiN9wXL228ORXqxXe8giRxRYZpTxgzGn20ZQgiYOYxGjg+tpkjmQ==}
     hasBin: true
 
-  '@dotenvx/primitives@3.0.3':
-    resolution: {integrity: sha512-KodBtwW8IgXhDiic04+cMvMKGjGLLew3jJq2JUGmh7c0M7u+twSylCkygkixzDvIvXrugKcCUQLkvDhgK7RN2g==}
+  '@dotenvx/primitives@3.1.0':
+    resolution: {integrity: sha512-6RYCXKc1Rwsz5pVw/IQJO/8zP+TpTm9AIzsAMin0fx5OgZ9Jcs2R51MLHidogle1TXmFnYQZxJE/Qq+JV0KGtw==}
 
   '@dotenvx/tooling@1.0.3':
     resolution: {integrity: sha512-Gd6qQol/ICb4MPRWpiIH56y+pR9AVB7kPBkbhrLSGLtAiF4Qgy+k651/f2pze0Xbm3H5XewbPfIm4y9K+ic30Q==}
@@ -2134,10 +2134,6 @@ packages:
     resolution: {integrity: sha512-dRB78srN/l6gqWulah9SrxeYnxeddIG30+GOqK/9OlLVyLg3HPnr6SqOWTWOXKRwC2eGYCkZ59NNuSgvSrpgOA==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
 
-  node-forge@1.4.0:
-    resolution: {integrity: sha512-LarFH0+6VfriEhqMMcLX2F7SwSXeWwnEAJEsYm5QKWchiVYVvJyV9v7UDvUv+w5HO23ZpQTXDv/GxdDdMyOuoQ==}
-    engines: {node: '>= 6.13.0'}
-
   normalize-package-data@6.0.2:
     resolution: {integrity: sha512-V6gygoYb/5EmNI+MEGrWkC+e6+Rr7mTmfHrxDbLzxQogBkgzo76rkok0Am6thgSF7Mv2nLOajAJj5vDJZEFn7g==}
     engines: {node: ^16.14.0 || >=18.0.0}
@@ -3105,16 +3101,15 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  '@dotenvx/dotenvx@2.32.4':
+  '@dotenvx/dotenvx@2.33.0':
     dependencies:
-      '@dotenvx/primitives': 3.0.3
+      '@dotenvx/primitives': 3.1.0
       '@dotenvx/tooling': 1.0.3
       global-agent: 3.0.0
-      node-forge: 1.4.0
       undici: 7.30.0
       yocto-spinner: 1.2.2
 
-  '@dotenvx/primitives@3.0.3': {}
+  '@dotenvx/primitives@3.1.0': {}
 
   '@dotenvx/tooling@1.0.3': {}
 
@@ -4690,8 +4685,6 @@ snapshots:
       data-uri-to-buffer: 4.0.1
       fetch-blob: 3.2.0
       formdata-polyfill: 4.0.10
-
-  node-forge@1.4.0: {}
 
   normalize-package-data@6.0.2:
     dependencies:
