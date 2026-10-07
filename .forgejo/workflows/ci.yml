@@ -111,7 +111,7 @@ jobs:
           token: ${{ secrets.CI_PAT }}
 
       - name: Enable pnpm
-        run: npm install -g pnpm@12.6.0
+        run: npm install -g pnpm@$(node -p 'require("./package.json").packageManager.replace(/^pnpm@/, "")')
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -147,7 +147,7 @@ jobs:
           ref: ${{ needs.version.outputs.target_sha }}
 
       - name: Enable pnpm
-        run: npm install -g pnpm@12.6.0
+        run: npm install -g pnpm@$(node -p 'require("./package.json").packageManager.replace(/^pnpm@/, "")')
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -176,7 +176,7 @@ jobs:
           ref: ${{ needs.version.outputs.target_sha }}
 
       - name: Enable pnpm
-        run: npm install -g pnpm@12.6.0
+        run: npm install -g pnpm@$(node -p 'require("./package.json").packageManager.replace(/^pnpm@/, "")')
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
