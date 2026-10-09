@@ -159,3 +159,4 @@ Historical entries through the current release were **backfilled from merged PR 
 - **v7.12.8** `chore`: Merge pull request 'Keep undici on 7.x so Discord command deploy can finish' (#200) from fix/undici-discord into main
 - **v7.12.9** `chore`: Merge pull request 'chore(deps): update production dependencies' (#201) from deps/production into main
 - **v7.12.10** `chore`: Merge pull request 'chore(deps): update dependencies to latest' (#204) from chore/deps-latest into main
+- **v7.12.11** `chore`: Merge pull request 'chore(deps): update production dependencies' (#206) from deps/production into main
