@@ -160,3 +160,4 @@ Historical entries through the current release were **backfilled from merged PR 
 - **v7.12.9** `chore`: Merge pull request 'chore(deps): update production dependencies' (#201) from deps/production into main
 - **v7.12.10** `chore`: Merge pull request 'chore(deps): update dependencies to latest' (#204) from chore/deps-latest into main
 - **v7.12.11** `chore`: Merge pull request 'chore(deps): update production dependencies' (#206) from deps/production into main
+- **v7.12.12** `chore`: Merge pull request 'ci: rebuild dependency pull requests from an @actions rebase comment' (#207) from ci/actions-rebase into main
