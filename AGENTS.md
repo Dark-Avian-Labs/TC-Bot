@@ -2,7 +2,7 @@
 
 ## Org standards
 
-CI/README/validate conventions live in AppBase [`docs/org-standards/`](../AppBase/docs/org-standards/). This repo is **semantic-release Track A**. GitHub is `ishark5060/tc-bot` (personal), not Dark-Avian-Labs. It is a Discord bot, not a DAL web app, and does **not** follow the AppBase design system.
+CI/README/validate conventions live in AppBase [`docs/org-standards/`](../AppBase/docs/org-standards/). This repo tags `vX.Y.Z` from `release.mjs` after a successful deploy. GitHub is `ishark5060/tc-bot` (personal), not Dark-Avian-Labs. It is a Discord bot, not a DAL web app, and does **not** follow the AppBase design system.
 
 See `README.md` for scripts, env, and Google credential shape.
 

@@ -14,9 +14,9 @@ on:
       - 'tsconfig*.json'
       - 'vitest.config.ts'
       - 'run-quality-checks.mjs'
+      - 'release.mjs'
       - '.env.production'
       - '.forgejo/workflows/ci.yml'
-      - '.releaserc.json'
   workflow_dispatch:
 
 concurrency:
@@ -25,7 +25,6 @@ concurrency:
 
 jobs:
   deployment-check:
-    if: ${{ !contains(github.event.head_commit.message, 'chore(release)') && !contains(github.event.head_commit.message, 'build(release)') }}
     runs-on: build-node26
     timeout-minutes: 10
 
@@ -93,58 +92,19 @@ jobs:
           echo "deploy=false" >> "$GITHUB_OUTPUT"
           echo "Reason: Only devDependencies or lockfile changed"
 
-  version:
-    runs-on: build-node26
-    timeout-minutes: 10
-
-    needs: [deployment-check]
-    if: ${{ needs.deployment-check.outputs.deploy == 'true' && !contains(github.event.head_commit.message, 'chore(release)') && !contains(github.event.head_commit.message, 'build(release)') }}
-
-    outputs:
-      target_sha: ${{ steps.target.outputs.sha }}
-
-    steps:
-      - name: Checkout full history
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.CI_PAT }}
-
-      - name: Enable pnpm
-        run: npm install -g pnpm@$(node -p 'require("./package.json").packageManager.replace(/^pnpm@/, "")')
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Bump version
-        run: pnpm exec semantic-release
-        env:
-          GITHUB_TOKEN: ${{ secrets.CI_PAT }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          MERGE_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
-
-      - name: Resolve deployment target SHA
-        id: target
-        shell: bash
-        run: |
-          git fetch origin main
-          echo "sha=$(git rev-parse origin/main)" >> "$GITHUB_OUTPUT"
-
   validate:
     runs-on: build-node26
     timeout-minutes: 10
 
-    needs: [deployment-check, version]
+    needs: [deployment-check]
     if: needs.deployment-check.outputs.deploy == 'true'
 
     env:
       DOTENV_PRIVATE_KEY_PRODUCTION: ${{ secrets.DOTENV_PRIVATE_KEY_PRODUCTION }}
 
     steps:
-      - name: Checkout release target
+      - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ needs.version.outputs.target_sha }}
 
       - name: Enable pnpm
         run: npm install -g pnpm@$(node -p 'require("./package.json").packageManager.replace(/^pnpm@/, "")')
@@ -164,16 +124,14 @@ jobs:
     runs-on: build-node26
     timeout-minutes: 10
 
-    needs: [deployment-check, version, validate]
+    needs: [deployment-check, validate]
     if: needs.deployment-check.outputs.deploy == 'true'
 
     steps:
       - name: Install host tools
         run: apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y openssh-client rsync
-      - name: Checkout release target
+      - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ needs.version.outputs.target_sha }}
 
       - name: Enable pnpm
         run: npm install -g pnpm@$(node -p 'require("./package.json").packageManager.replace(/^pnpm@/, "")')
@@ -315,10 +273,28 @@ jobs:
         if: always()
         run: rm -f ~/.ssh/deploy_key
 
+  release:
+    runs-on: build-node26
+    timeout-minutes: 10
+    needs: [deployment-check, build-and-deploy]
+    if: needs.deployment-check.outputs.deploy == 'true'
+
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Publish release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          RELEASE_PUBLISH: '1'
+        run: node release.mjs
+
   discord-status:
     runs-on: light-node26
     timeout-minutes: 10
-    needs: [deployment-check, validate, build-and-deploy, version]
+    needs: [deployment-check, validate, build-and-deploy, release]
     if: ${{ always() && github.ref == 'refs/heads/main' }}
 
     steps:
