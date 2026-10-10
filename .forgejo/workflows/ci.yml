@@ -21,7 +21,7 @@ on:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   deployment-check:
@@ -271,7 +271,7 @@ jobs:
           cp client_secret.json /tmp/deploy/
           cp .env.production /tmp/deploy/
           printf 'DOTENV_PRIVATE_KEY_PRODUCTION=%s\n' "$DOTENV_PRIVATE_KEY_PRODUCTION" > /tmp/deploy/.env.keys
-          chmod 600 /tmp/deploy/.env.keys
+          chmod 640 /tmp/deploy/.env.keys
           test -s /tmp/deploy/.env.keys || { echo "ERROR: Failed to create .env.keys in deployment bundle."; exit 1; }
 
       - name: Deploy to server
@@ -286,30 +286,18 @@ jobs:
             --exclude='.env.keys' \
             --exclude='logs/' \
             --exclude='data/' \
-            --chmod=D2770,F640 \
+            --chmod=D2770,F660 \
             --omit-dir-times \
             -e "ssh -p $SERVER_SSH_PORT -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/known_hosts" \
             /tmp/deploy/ \
             "$SERVER_USER@$SERVER_HOST:$SERVER_PATH/"
 
           rsync -av --no-times \
-            --chmod=F600 \
+            --chmod=F640 \
             --omit-dir-times \
             -e "ssh -p $SERVER_SSH_PORT -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/known_hosts" \
             /tmp/deploy/.env.keys \
             "$SERVER_USER@$SERVER_HOST:$SERVER_PATH/.env.keys"
-
-      - name: Update permissions
-        env:
-          SERVER_SSH_PORT: ${{ secrets.SERVER_SSH_PORT }}
-          SERVER_USER: ${{ secrets.SERVER_USER }}
-          SERVER_HOST: ${{ secrets.SERVER_HOST }}
-          SERVER_PATH: ${{ secrets.SERVER_PATH }}
-        run: |
-          ssh -p "$SERVER_SSH_PORT" -i ~/.ssh/deploy_key \
-            -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/known_hosts \
-            "$SERVER_USER@$SERVER_HOST" \
-            "/usr/local/bin/pm2-chown-tree $SERVER_PATH"
 
       - name: Restart PM2
         env:
@@ -321,14 +309,14 @@ jobs:
             -o StrictHostKeyChecking=yes \
             -o UserKnownHostsFile=~/.ssh/known_hosts \
             "$SERVER_USER@$SERVER_HOST" \
-            "/usr/local/bin/pm2-restart-safe TC-Bot"
+            "sudo -n -u pm2-user /home/pm2-user/bin/pm2-wrapper restart TC-Bot"
 
       - name: Cleanup SSH key
         if: always()
         run: rm -f ~/.ssh/deploy_key
 
   discord-status:
-    runs-on: build-node26
+    runs-on: light-node26
     timeout-minutes: 10
     needs: [deployment-check, validate, build-and-deploy, version]
     if: ${{ always() && github.ref == 'refs/heads/main' }}
