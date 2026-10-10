@@ -163,3 +163,4 @@ Historical entries through the current release were **backfilled from merged PR 
 - **v7.12.12** `chore`: Merge pull request 'ci: rebuild dependency pull requests from an @actions rebase comment' (#207) from ci/actions-rebase into main
 - **v7.12.13** `chore`: Merge pull request 'ci: rebase dependency pull requests as Sayori' (#208) from ci/sayori-rebase into main
 - **v7.12.14** `chore`: Merge pull request 'Update pnpm to 12.10.1 and Vite to 8.3.4' (#209) from chore/deps-pnpm-12.10.1 into main
+- **v7.12.15** `chore`: Merge pull request 'Restart the app through pm2-wrapper' (#210) from ci/deploy-user into main
