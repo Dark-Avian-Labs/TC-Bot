@@ -215,6 +215,13 @@ jobs:
             exit 1
           fi
           echo "$SERVER_KNOWN_HOST" >> ~/.ssh/known_hosts
+          # Runner containers use a podman network; the host's sshd is reachable via host.containers.internal.
+          # HostKeyAlias keeps checking against SERVER_KNOWN_HOST. Falls back to SERVER_HOST (host networking).
+          if getent hosts host.containers.internal >/dev/null 2>&1 && timeout 5 bash -c "</dev/tcp/host.containers.internal/$SERVER_SSH_PORT" 2>/dev/null; then
+            echo "DEPLOY_HOST=host.containers.internal" >> "$GITHUB_ENV"
+          else
+            echo "DEPLOY_HOST=$SERVER_HOST" >> "$GITHUB_ENV"
+          fi
 
       - name: Prepare deployment
         env:
@@ -246,16 +253,16 @@ jobs:
             --exclude='data/' \
             --chmod=D2770,F660 \
             --omit-dir-times \
-            -e "ssh -p $SERVER_SSH_PORT -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/known_hosts" \
+            -e "ssh -p $SERVER_SSH_PORT -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o HostKeyAlias=$SERVER_HOST -o UserKnownHostsFile=~/.ssh/known_hosts" \
             /tmp/deploy/ \
-            "$SERVER_USER@$SERVER_HOST:$SERVER_PATH/"
+            "$SERVER_USER@${DEPLOY_HOST:-$SERVER_HOST}:$SERVER_PATH/"
 
           rsync -av --no-times \
             --chmod=F640 \
             --omit-dir-times \
-            -e "ssh -p $SERVER_SSH_PORT -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/known_hosts" \
+            -e "ssh -p $SERVER_SSH_PORT -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o HostKeyAlias=$SERVER_HOST -o UserKnownHostsFile=~/.ssh/known_hosts" \
             /tmp/deploy/.env.keys \
-            "$SERVER_USER@$SERVER_HOST:$SERVER_PATH/.env.keys"
+            "$SERVER_USER@${DEPLOY_HOST:-$SERVER_HOST}:$SERVER_PATH/.env.keys"
 
       - name: Restart PM2
         env:
@@ -264,9 +271,9 @@ jobs:
           SERVER_HOST: ${{ secrets.SERVER_HOST }}
         run: |
           ssh -p "$SERVER_SSH_PORT" -i ~/.ssh/deploy_key \
-            -o StrictHostKeyChecking=yes \
+            -o StrictHostKeyChecking=yes -o HostKeyAlias=$SERVER_HOST \
             -o UserKnownHostsFile=~/.ssh/known_hosts \
-            "$SERVER_USER@$SERVER_HOST" \
+            "$SERVER_USER@${DEPLOY_HOST:-$SERVER_HOST}" \
             "sudo -n -u pm2-user /home/pm2-user/bin/pm2-wrapper restart TC-Bot"
 
       - name: Cleanup SSH key
