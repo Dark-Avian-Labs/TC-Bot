@@ -216,8 +216,7 @@ jobs:
           fi
           echo "$SERVER_KNOWN_HOST" >> ~/.ssh/known_hosts
           # Runner containers use a podman network; the host's sshd is reachable via host.containers.internal.
-          # Same host key as SERVER_KNOWN_HOST, under the container-side name. Falls back to SERVER_HOST (host networking).
-          echo '[host.containers.internal]:2222 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIiPTBSrmfvTgO/ZWE9yG62Mt66j5OPOOpBgTC2OyQsc' >> ~/.ssh/known_hosts
+          # SERVER_KNOWN_HOST must also list [host.containers.internal]:PORT. Falls back to SERVER_HOST (host networking).
           if getent hosts host.containers.internal >/dev/null 2>&1 && timeout 5 bash -c "</dev/tcp/host.containers.internal/$SERVER_SSH_PORT" 2>/dev/null; then
             echo "DEPLOY_HOST=host.containers.internal" >> "$GITHUB_ENV"
           else
