@@ -264,6 +264,20 @@ jobs:
             /tmp/deploy/.env.keys \
             "$SERVER_USER@${DEPLOY_HOST:-$SERVER_HOST}:$SERVER_PATH/.env.keys"
 
+      - name: Restrict secret files
+        env:
+          SERVER_SSH_PORT: ${{ secrets.SERVER_SSH_PORT }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_PATH: ${{ secrets.SERVER_PATH }}
+        run: |
+          # Owner deploy (rw), pm2-user read via ACL, nobody else (group web/caddy excluded).
+          ssh -p "$SERVER_SSH_PORT" -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile=~/.ssh/known_hosts \
+            "$SERVER_USER@${DEPLOY_HOST:-$SERVER_HOST}" \
+            "set -e; cd '$SERVER_PATH'; for f in .env.keys .env.production .env .env.local; do if [ -f \"\$f\" ] && [ ! -L \"\$f\" ]; then setfacl -b \"\$f\"; chmod 600 \"\$f\"; setfacl -m u:pm2-user:r \"\$f\"; fi; done"
+
       - name: Restart PM2
         env:
           SERVER_SSH_PORT: ${{ secrets.SERVER_SSH_PORT }}
