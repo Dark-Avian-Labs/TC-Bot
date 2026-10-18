@@ -26,12 +26,12 @@
   },
   "dependencies": {
     "@dark-avian-labs/sentinel-agent": "https://git.darkavianlabs.com/Dark-Avian-Labs/Sentinel/releases/download/agent-v0.1.0/dark-avian-labs-sentinel-agent-0.1.0.tgz",
-    "@dotenvx/dotenvx": "^2.36.0",
+    "@dotenvx/dotenvx": "^2.38.0",
     "@googleapis/sheets": "^18.1.1",
     "@pm2/io": "^6.1.0",
     "better-sqlite3": "^13.0.3",
     "discord.js": "^14.27.0",
-    "google-auth-library": "^11.3.0"
+    "google-auth-library": "^11.3.1"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^9.6.0",
