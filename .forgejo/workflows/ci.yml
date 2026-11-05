@@ -48,9 +48,17 @@ jobs:
         run: |
           set -euo pipefail
 
+          note() {
+            target="${FORGEJO_STEP_SUMMARY:-${GITHUB_STEP_SUMMARY:-}}"
+            if [ -n "$target" ]; then
+              printf '%s\n' "$1" >> "$target"
+            fi
+          }
+
           if [ -z "$BEFORE" ] || ! git cat-file -e "$BEFORE"^{commit} 2>/dev/null; then
             echo "deploy=true" >> "$GITHUB_OUTPUT"
             echo "Reason: Missing or invalid before commit"
+            note "No base commit. Deploy."
             exit 0
           fi
 
@@ -61,6 +69,7 @@ jobs:
           if [ -z "$changed_files" ]; then
             echo "deploy=false" >> "$GITHUB_OUTPUT"
             echo "Reason: No files changed"
+            note "No file changes. Skip."
             exit 0
           fi
 
@@ -71,6 +80,7 @@ jobs:
             echo "$others"
             echo "deploy=true" >> "$GITHUB_OUTPUT"
             echo "Reason: Non-package files changed"
+            note "Non-package files changed. Deploy."
             exit 0
           fi
 
@@ -86,11 +96,13 @@ jobs:
             "$tmp_new" "$tmp_old" >/dev/null; then
             echo "deploy=true" >> "$GITHUB_OUTPUT"
             echo "Reason: Production dependencies changed"
+            note "Production dependencies changed. Deploy."
             exit 0
           fi
 
           echo "deploy=false" >> "$GITHUB_OUTPUT"
           echo "Reason: Only devDependencies or lockfile changed"
+          note "Only devDependencies or the lockfile changed. Skip."
 
   validate:
     runs-on: build-node26
