@@ -28,7 +28,7 @@ import { calculateMopupTiming, buildMopupAnnouncementEmbed } from './helper/mopu
 import { safeChannelSend } from './helper/safeDiscordResponse.js';
 import { getSheetRowsCached, registerSheetTitle } from './helper/sheetsCache.js';
 import * as usageTracker from './helper/usageTracker.js';
-import { createAppSentinelAgent } from './sentinelAgent.js';
+import { createAppSentinelAgent, waitForSentinelExit } from './sentinelAgent.js';
 import type { Command, ExtendedClient, GoogleSheetsClient } from './types/index.js';
 
 declare module 'discord.js' {
@@ -92,10 +92,10 @@ function validateEnvironment(): void {
 validateEnvironment();
 
 process.on('SIGTERM', () => {
-  void gracefulShutdown();
+  void gracefulShutdown('SIGTERM');
 });
 process.on('SIGINT', () => {
-  void gracefulShutdown();
+  void gracefulShutdown('SIGINT');
 });
 
 process.on('unhandledRejection', (reason, promise) => {
@@ -104,7 +104,7 @@ process.on('unhandledRejection', (reason, promise) => {
     promise: String(promise),
   });
   console.error('[PROCESS] Unhandled rejection:', reason);
-  sentinelAgent?.noteCrash(reason);
+  void waitForSentinelExit(sentinelAgent?.noteCrash(reason));
 });
 
 process.on('uncaughtException', (error) => {
@@ -112,14 +112,13 @@ process.on('uncaughtException', (error) => {
     error,
   });
   console.error('[PROCESS] Uncaught exception:', error);
-  sentinelAgent?.noteCrash(error);
   const forceExitTimeout = setTimeout(() => {
     console.error('[PROCESS] Forced exit after uncaught exception');
     // eslint-disable-next-line n/no-process-exit -- Required for undefined state recovery
     process.exit(1);
   }, 10000);
   forceExitTimeout.unref();
-  void gracefulShutdown();
+  void gracefulShutdown(undefined, error);
 });
 
 let isShuttingDown = false;
@@ -169,16 +168,26 @@ const MOPUP_ANNOUNCE_LOCK_TTL_MS = 24 * 60 * 60 * 1000;
     });
     console.error('[BOOT] Failed to initialize bot:', error);
     process.exitCode = 1;
-    await gracefulShutdown();
+    await gracefulShutdown(undefined, error);
   }
 })();
 
-async function gracefulShutdown(): Promise<void> {
+async function gracefulShutdown(signal?: string, crash?: unknown): Promise<void> {
   if (isShuttingDown) {
     debugLogger.warn('SHUTDOWN', 'Shutdown already in progress, ignoring duplicate signal');
     return;
   }
   isShuttingDown = true;
+
+  if (crash !== undefined) process.exitCode = 1;
+  else if (process.exitCode === undefined) process.exitCode = 0;
+  const exitReport =
+    crash !== undefined
+      ? sentinelAgent?.noteCrash(crash)
+      : process.exitCode === 0
+        ? sentinelAgent?.noteGracefulExit(signal)
+        : sentinelAgent?.noteCrash(new Error(`shutdown exit ${process.exitCode}`));
+  sentinelAgent?.stop();
 
   debugLogger.step('SHUTDOWN', 'Starting graceful shutdown');
   console.log('[SHUTDOWN] Shutting down gracefully...');
@@ -213,21 +222,15 @@ async function gracefulShutdown(): Promise<void> {
     client.destroy();
     debugLogger.step('SHUTDOWN', 'Bot shut down successfully');
     console.log('[SHUTDOWN] Bot shut down successfully');
-    if (process.exitCode === undefined) {
-      process.exitCode = 0;
-    }
-    if (process.exitCode === 0) sentinelAgent?.noteGracefulExit();
-    else sentinelAgent?.noteCrash(new Error(`shutdown exit ${process.exitCode}`));
-    sentinelAgent?.stop();
   } catch (error) {
     debugLogger.error('SHUTDOWN', 'Error during shutdown', {
       error: error as Error,
     });
     console.error('[SHUTDOWN] Error during shutdown:', error);
     process.exitCode = 1;
-    sentinelAgent?.noteCrash(error);
-    sentinelAgent?.stop();
   }
+
+  await waitForSentinelExit(exitReport);
 }
 
 async function initializeGoogleSheets(): Promise<void> {
