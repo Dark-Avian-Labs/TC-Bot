@@ -1,14 +1,23 @@
-import type {
-  APIEmbed,
-  EmbedBuilder,
-  Message,
-  MessageCreateOptions,
-  TextBasedChannel,
+import {
+  PermissionFlagsBits,
+  type APIEmbed,
+  type EmbedBuilder,
+  type Message,
+  type MessageCreateOptions,
+  type PermissionsBitField,
+  type RepliableInteraction,
+  type TextBasedChannel,
 } from 'discord.js';
 
 import { debugLogger } from './debugLogger.js';
 
 const REPLY_DUPLICATE_SCAN_LIMIT = 25;
+const DISCORD_MISSING_ACCESS = 50001;
+const DISCORD_MISSING_PERMISSIONS = 50013;
+const HISTORY_SCAN_PERMISSIONS = [
+  PermissionFlagsBits.ViewChannel,
+  PermissionFlagsBits.ReadMessageHistory,
+];
 
 export type DedupeScope =
   | { type: 'interaction'; interactionId: string }
@@ -16,10 +25,19 @@ export type DedupeScope =
   | { type: 'announce'; key: string }
   | { type: 'channel'; fingerprint: string };
 
+export function allowsHistoryScan(permissions: Pick<PermissionsBitField, 'has'>): boolean {
+  return permissions.has(HISTORY_SCAN_PERMISSIONS);
+}
+
+export function interactionAllowsHistoryScan(interaction: RepliableInteraction): boolean {
+  if (!interaction.inGuild()) return true;
+  return allowsHistoryScan(interaction.appPermissions);
+}
+
 export async function dedupeBotResponse(sentMessage: Message, scope: DedupeScope): Promise<void> {
   try {
     const channel = await resolveTextBasedChannel(sentMessage);
-    if (!channel) return;
+    if (!channel || !channelAllowsHistoryScan(channel)) return;
 
     const botUserId = sentMessage.client.user?.id;
     if (!botUserId) return;
@@ -38,6 +56,7 @@ export async function dedupeBotResponse(sentMessage: Message, scope: DedupeScope
 
     await deleteDuplicateMessages(matchingMessages, sentMessage.id);
   } catch (error: unknown) {
+    if (isMissingChannelAccess(error)) return;
     const err = error instanceof Error ? error : new Error(String(error));
     debugLogger.error('replyDuplicateCleanup', 'dedupeBotResponse failed', {
       error: err,
@@ -54,7 +73,7 @@ export async function channelHasMatchingBotMessage(
   scope: DedupeScope,
 ): Promise<boolean> {
   const botUserId = channel.client.user?.id;
-  if (!botUserId) return false;
+  if (!botUserId || !channelAllowsHistoryScan(channel)) return false;
 
   try {
     const recentMessages = await channel.messages.fetch({
@@ -66,6 +85,7 @@ export async function channelHasMatchingBotMessage(
       return messageMatchesScope(candidate, scope);
     });
   } catch (error: unknown) {
+    if (isMissingChannelAccess(error)) return false;
     const err = error instanceof Error ? error : new Error(String(error));
     debugLogger.error('replyDuplicateCleanup', 'channelHasMatchingBotMessage failed', {
       error: err,
@@ -117,6 +137,7 @@ async function resolveTextBasedChannel(sentMessage: Message): Promise<TextBasedC
     const fetched = await sentMessage.client.channels.fetch(sentMessage.channelId);
     if (fetched?.isTextBased()) return fetched;
   } catch (error: unknown) {
+    if (isMissingChannelAccess(error)) return null;
     const err = error instanceof Error ? error : new Error(String(error));
     debugLogger.warn('replyDuplicateCleanup', 'Failed to fetch channel for duplicate cleanup', {
       error: err,
@@ -152,6 +173,24 @@ function embedDataFingerprint(data: APIEmbed): Record<string, unknown> {
       inline: field.inline,
     })),
   };
+}
+
+function channelAllowsHistoryScan(channel: TextBasedChannel): boolean {
+  if (channel.appPermissions) return allowsHistoryScan(channel.appPermissions);
+
+  if (!('permissionsFor' in channel) || typeof channel.permissionsFor !== 'function') return true;
+
+  const me = channel.client.user;
+  if (!me) return false;
+
+  const permissions = channel.permissionsFor(me);
+  if (!permissions) return true;
+  return allowsHistoryScan(permissions);
+}
+
+function isMissingChannelAccess(error: unknown): boolean {
+  if (typeof error !== 'object' || error === null || !('code' in error)) return false;
+  return error.code === DISCORD_MISSING_ACCESS || error.code === DISCORD_MISSING_PERMISSIONS;
 }
 
 function messageFingerprint(message: Message): string {

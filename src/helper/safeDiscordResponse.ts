@@ -12,6 +12,7 @@ import {
 import {
   channelHasMatchingBotMessage,
   dedupeBotResponse,
+  interactionAllowsHistoryScan,
   outgoingFingerprint,
   type DedupeScope,
 } from './replyDuplicateCleanup.js';
@@ -63,7 +64,7 @@ export async function safeInteractionReply(
 
   const response = await interaction.reply({ ...normalized, withResponse: true });
   const sent = resolveInteractionMessage(response);
-  if (sent) {
+  if (sent && interactionAllowsHistoryScan(interaction)) {
     await dedupeBotResponse(sent, interactionScope(interaction));
   }
   return sent;
@@ -80,7 +81,7 @@ export async function safeDeferReply(
 
   const response = await interaction.deferReply({ ...options, withResponse: true });
   const sent = resolveInteractionMessage(response);
-  if (sent) {
+  if (sent && interactionAllowsHistoryScan(interaction)) {
     await dedupeBotResponse(sent, interactionScope(interaction));
   }
 }
@@ -97,7 +98,7 @@ export async function safeInteractionFollowUp(
 
   const response = await interaction.followUp({ ...normalized, withResponse: true });
   const sent = resolveInteractionMessage(response);
-  if (sent) {
+  if (sent && interactionAllowsHistoryScan(interaction)) {
     await dedupeBotResponse(sent, interactionScope(interaction));
   }
   return sent;
